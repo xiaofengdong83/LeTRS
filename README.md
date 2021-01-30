@@ -60,3 +60,4 @@ perl LeTRS-plot.pl -ratio 1 -i known_junction.tab
 4. Customize leader-TRS junctions and sars-cov-2 or other coronavirus genome as reference.
 Please the see the "readme.txt" file in the "making_reference_folder_example" folder.
 
+
