@@ -6,9 +6,9 @@ LeTRS was implemented in Perl programming language, including a main script for 
 samtools (>=1.11)<br>
 hisat2(>=2.1.0)<br>
 minimap2(>=2.17)<br>
-portcullis(=1.1.2)<br>
+[portcullis](https://github.com/maplesond/portcullis)(=1.1.2)<br>
 
-We suggest to install the portcullis with conda as below:<br>
+All these three party tools dependences should be export to PATH, wo that LsTRS can din them. We suggest to install the portcullis with conda as below:<br>
 conda install portcullis=1.1.2 --channel=bioconda<br>
 
 **Perl module dependences:**<br>
