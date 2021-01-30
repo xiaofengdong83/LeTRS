@@ -6,10 +6,10 @@ LeTRS was implemented in Perl programming language, including a main program for
 samtools (>=1.11)<br>
 hisat2(>=2.1.0)<br>
 minimap2(>=2.17)<br>
-portcullis(=1.1.2)<br><br>
+portcullis(=1.1.2)<br>
 
 We suggest to install the portcullis with conda as below:<br>
-conda install portcullis=1.1.2 --channel=bioconda<br><br>
+conda install portcullis=1.1.2 --channel=bioconda<br>
 
 ###### Perl module dependences:<br>
 Getopt::Long<br>
@@ -17,10 +17,10 @@ File::Basename<br>
 List::Compare<br>
 List::Util<br>
 List::Uniq<br>
-Statistics::R<br><br>
+Statistics::R<br>
 
 ###### R module dependences (for plotting):<br>
-ggplot2<br><br>
+ggplot2<br>
 
 #### 1.Usages <br>
 Please see the details of each parameters by:<br><br>
