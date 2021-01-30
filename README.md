@@ -27,29 +27,29 @@ Please see the details of each parameters by:<br>
 
 **Examples:**<br>
 (1) To analyse ARTIC V3 noropore cDNA sequencing data and extract the reads contain the identified leader-TRS junctions in fasta format:<br>
-*perl LeTRS.pl -t 16 -extractfasta -Rtch cDNA -mode noropore -fa example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output<br>
+*perl LeTRS.pl -t 16 -extractfasta -Rtch cDNA -mode noropore -fa example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output*<br>
 
 (2) To analyse direct RNA noropore sequencing data and extract the reads contain the identified leader-TRS junctions in fasta format:<br>
-*perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode noropore -fq example.fastq.gz -o LeTRS_output<br>
+*perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode noropore -fq example.fastq.gz -o LeTRS_output*<br>
 
 (3) To analyse direct RNA noropore sequencing data with customize leader-TRS junctions and sars-cov-2 or other coronavirus genome as reference, and extract the reads contain the identified leader-TRS junctions in fasta format:<br>
-*perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode noropore -fq example.fastq.gz -o LeTRS_output -ref reference_folder<br>
+*perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode noropore -fq example.fastq.gz -o LeTRS_output -ref reference_folder*<br>
 
 (4) To analyse paired end illumina sequencing data and extract the reads contain the identified leader-TRS junctions in fasta format:<br>
-*perl LeTRS.pl -t 16 -extractfasta -mode illumia -fq #1.fasq.gz:#2.fasq.gz -primer_bed primer_V3.bed -o LeTRS_output<br>
+*perl LeTRS.pl -t 16 -extractfasta -mode illumia -fq #1.fasq.gz:#2.fasq.gz -primer_bed primer_V3.bed -o LeTRS_output*<br>
 
 (5) To analyse customize bam file reads derived from any platform aligned by using a splicing mapping method.<br>
-*perl LeTRS.pl -t 16 -extractfasta -mode illumia -bam example.bam -o LeTRS_output<br>
+*perl LeTRS.pl -t 16 -extractfasta -mode illumia -bam example.bam -o LeTRS_output*<br>
 
 #### 3. Plotting  <br>
 There is also a perl script that can plot a diagram for the output of LeTRS.pl.<br>
 
 **Examples:**<br>
 (1) Plotting the value in the column of "peak_count" in "known_junction.tab" or "nb_count" in the "novel_junction.tab. "-count 1" indicates the first number of each row in the column and "-count 2" indicates the second number of each row in the column, and so on.<br>
-*perl LeTRS-plot.pl -count 1 -i known_junction.tab<br>
+*perl LeTRS-plot.pl -count 1 -i known_junction.tab*<br>
 
 (2) Plotting the value in the column of "peak_peak_count_ratio" in "known_junction.tab" or "count_ratio" in the "novel_junction.tab. "-count 1" indicates the first number of each row in the column and "-count 2" indicates the second number of each row in the column, and so on.<br>
-*perl LeTRS-plot.pl -ratio 1 -i known_junction.tab<br>
+*perl LeTRS-plot.pl -ratio 1 -i known_junction.tab*<br>
 
 #### 4. Customize leader-TRS junctions and sars-cov-2 or other coronavirus genome as reference.<br>
 Please the see the "readme.txt" file in the "making_reference_folder_example" folder.<br>
