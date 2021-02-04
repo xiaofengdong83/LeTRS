@@ -1,4 +1,4 @@
-making_ref.pl can help user to create reference folder for customize leader-TRS junctions and sars-cov-2 or other coronavirus genome as reference.
+making_ref.pl can help user to creat reference folder for customize leader-TRS junctions and sars-cov-2 or other coronavirus genome as reference.
 
 The input files are fasta file of a coronavirus reference genome and a four columns bed file including subgenomic name, position of the end of leader, position of the start of TRS and position of the end of TRS.
 

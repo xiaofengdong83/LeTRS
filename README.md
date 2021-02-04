@@ -13,6 +13,7 @@ conda install portcullis=1.1.2 --channel=bioconda<br>
 
 **Perl module dependences:**<br>
 Getopt::Long<br>
+Bio::SeqIO<br>
 File::Basename<br>
 List::Compare<br>
 List::Util<br>

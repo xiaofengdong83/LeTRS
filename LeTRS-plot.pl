@@ -83,12 +83,12 @@ print "the output path is: $outputpath\n";
 ###################### start to run ######################
 open(TABLE,"$options{'i'}");
 open(TABLERR,">$outputpath/known_junction_tmp2.tab");
-print TABLERR "leaderorf\tcount\n";
+print TABLERR "leaderorf\tcount\tlevel\n";
 my @tables=<TABLE>;
-my @collection; my @leaders; my @orfs;
+my @collection; my @leaders; my @leaders2; my @orfs; my $numfortmp1;
 foreach (@tables) {
    if ($tables[0]=~/^subgenome\tref_leader_end/) {
-      unless (/^subgenome\tref_leader_end/ or /The numbers in the bracket/) {
+      unless (/^subgenome\tref_leader_end|The numbers in the bracket|Normalized count\=|Total number of read mapped/) {
          my @each1=split(/\t/);
          my @each2;
          if (exists $options{'count'}) {
@@ -109,15 +109,17 @@ foreach (@tables) {
             #print "$each1[0]\t$each1[1]\t$each1[3]\t$each1[5]\t$each2[$plotvalue]\n";
             push (@collection, "leader\_$each1[0]\_$each1[2]\tleader\_$each1[2]\t$each1[2]\n");
             push (@collection, "leader\_$each1[0]\_$each1[2]\t$each1[0]\t$each1[0]\n");
-            print TABLERR "leader\_$each1[0]\_$each1[2]\t$each2[$plotvalue]\n";
+            $numfortmp1++;
+            print TABLERR "leader\_$each1[0]\_$each1[2]\t$each2[$plotvalue]\t$numfortmp1\n";
             push (@leaders, $each1[2]);
+            push (@leaders2, "leader\_$each1[0]\_$each1[2]");
             push (@orfs, $each1[0]);
          }
       }
    }
    
    if ($tables[0]=~/^subgenome\tleader_end/) {
-      unless (/^subgenome\tleader_end/ or /The numbers in the bracket/) {
+      unless (/^subgenome\tleader_end|The numbers in the bracket|Normalized count\=|Total number of read mapped/) {
          my @each1=split(/\t/);
          my @each2;
          if (exists $options{'count'}) {
@@ -138,8 +140,10 @@ foreach (@tables) {
          #print "$each1[0]\t$each1[1]\t$each1[2]\t$each2[$plotvalue]\n";
          push (@collection, "$each1[1]\_$each1[2]\tleader\_$each1[1]\t$each1[1]\n");
          push (@collection, "$each1[1]\_$each1[2]\t$each1[2]\t$each1[2]\n");
-         print TABLERR "$each1[1]\_$each1[2]\t$each2[$plotvalue]\n";
+         $numfortmp1++;
+         print TABLERR "$each1[1]\_$each1[2]\t$each2[$plotvalue]\t$numfortmp1\n";
          push (@leaders, "$each1[1]");
+         push (@leaders2, "$each1[1]\_$each1[2]");
          push (@orfs, $each1[2]);
       }
    }
@@ -154,6 +158,12 @@ foreach (@uniqleaders) {
    $hashleader{$_}=$numleaders;
 }
 
+my %hashleader2; my $numleaders2=0;
+foreach (@leaders2) {
+   $numleaders2++;
+   $hashleader2{$_}=$numleaders2;
+}
+
 my %hashorf; my $numorf=$numleaders;
 foreach (@orfs) {
    $numorf++;
@@ -161,15 +171,15 @@ foreach (@orfs) {
 }
 
 open(TABLER,">$outputpath/known_junction_tmp1.tab");
-print TABLER "leader\tjunction\tlabel\tlevels\n";
+print TABLER "leader\tjunction\tlabel\tlevels\tlevels2\n";
 foreach (@collection) {
    chomp;
    my @eachcollection=split(/\t/);
    
    if ($eachcollection[1]=~/leader_/) {
-      print TABLER "$eachcollection[0]\t$eachcollection[1]\t$eachcollection[2]\t$hashleader{$eachcollection[2]}\n";
+      print TABLER "$eachcollection[0]\t$eachcollection[1]\t$eachcollection[2]\t$hashleader{$eachcollection[2]}\t$hashleader2{$eachcollection[0]}\n";
    }else{
-      print TABLER "$eachcollection[0]\t$eachcollection[1]\t$eachcollection[2]\t$hashorf{$eachcollection[2]}\n";
+      print TABLER "$eachcollection[0]\tTRS_$eachcollection[1]\t$eachcollection[2]\t$hashorf{$eachcollection[2]}\t$hashleader2{$eachcollection[0]}\n";
    }
 }
 close TABLER;
@@ -188,6 +198,7 @@ if (exists $options{'count'}) {
    library(patchwork)
 
    plotdatabarchart<-read.table(tmp2, head=T, row.names = NULL)
+   plotdatabarchart$leaderorf <- factor(plotdatabarchart$leaderorf,levels= unique(plotdatabarchart[order(plotdatabarchart$level), "leaderorf"]))
 
    # Basic barplot
    plot1<-ggplot(data= plotdatabarchart, aes(x=leaderorf, y=count)) + geom_bar(stat="identity", fill="red", width=0.3)+ geom_text(aes(y= count, label= count), vjust=-0.1, color="black")+ labs(y = "Count")+ theme(panel.background = element_blank(), axis.line.y = element_line(colour = "black"), axis.line.x = element_blank(), axis.title.x = element_blank(),axis.text.x = element_blank(),axis.ticks.x=element_blank())
@@ -195,9 +206,9 @@ if (exists $options{'count'}) {
    plotdata<-read.table(tmp1, head=T, row.names = NULL)
 
    plotdata$junction <- factor(plotdata$junction,levels= rev(unique(plotdata[order(plotdata$levels), "junction"])))
-   levels(plotdata$junction)
+   plotdata$leader <- factor(plotdata$leader,levels= unique(plotdata[order(plotdata$levels2), "leader"]))
 
-   plot2<-ggplot(data= plotdata, aes(x= leader,y= junction)) + geom_line(aes(group = leader))+ geom_point(color= "blue", size=2) + labs(y = "Leader-TRS orf")+ theme(axis.line = element_blank(),axis.title.x = element_blank(),axis.text.x = element_blank(),axis.ticks.x=element_blank())
+   plot2<-ggplot(data= plotdata, aes(x= leader,y= junction)) + geom_line(aes(group = leader))+ geom_point(color= "blue", size=2) + labs(y = "Position on the reference genome (nt)")+ theme(axis.line = element_blank(),axis.title.x = element_blank(),axis.text.x = element_blank(),axis.ticks.x=element_blank())
 
    #plotsizewith<-plotsize
    #plotsizeheight<-plotsize/1.5
@@ -212,16 +223,17 @@ $R->run('library(ggplot2)
    library(patchwork)
 
    plotdatabarchart<-read.table(tmp2, head=T, row.names = NULL)
+   plotdatabarchart$leaderorf <- factor(plotdatabarchart$leaderorf,levels= unique(plotdatabarchart[order(plotdatabarchart$level), "leaderorf"]))
 
    # Basic barplot
-   plot1<-ggplot(data= plotdatabarchart, aes(x=leaderorf, y=count)) + geom_bar(stat="identity", fill="red", width=0.3)+ geom_text(aes(y= count, label= count), vjust=-0.1, color="black")+ labs(y = "Count/1000000")+ theme(panel.background = element_blank(), axis.line.y = element_line(colour = "black"), axis.line.x = element_blank(), axis.title.x = element_blank(),axis.text.x = element_blank(),axis.ticks.x=element_blank())
+   plot1<-ggplot(data= plotdatabarchart, aes(x=leaderorf, y=count)) + geom_bar(stat="identity", fill="red", width=0.3)+ geom_text(aes(y= count, label= count), vjust=-0.1, color="black")+ labs(y = "Normalized count")+ theme(panel.background = element_blank(), axis.line.y = element_line(colour = "black"), axis.line.x = element_blank(), axis.title.x = element_blank(),axis.text.x = element_blank(),axis.ticks.x=element_blank())
 
    plotdata<-read.table(tmp1, head=T, row.names = NULL)
 
    plotdata$junction <- factor(plotdata$junction,levels= rev(unique(plotdata[order(plotdata$levels), "junction"])))
-   levels(plotdata$junction)
+   plotdata$leader <- factor(plotdata$leader,levels= unique(plotdata[order(plotdata$levels2), "leader"]))
 
-   plot2<-ggplot(data= plotdata, aes(x= leader,y= junction)) + geom_line(aes(group = leader))+ geom_point(color= "blue", size=2) + labs(y = "Leader-TRS orf")+ theme(axis.line = element_blank(),axis.title.x = element_blank(),axis.text.x = element_blank(),axis.ticks.x=element_blank())
+   plot2<-ggplot(data= plotdata, aes(x= leader,y= junction)) + geom_line(aes(group = leader))+ geom_point(color= "blue", size=2) + labs(y = "Position on the reference genome (nt)")+ theme(axis.line = element_blank(),axis.title.x = element_blank(),axis.text.x = element_blank(),axis.ticks.x=element_blank())
    
    #plotsizewith<-plotsize
    #plotsizeheight<-plotsize/1.5
