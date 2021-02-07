@@ -47,12 +47,16 @@ Please see the details of each parameters by:<br>
 
 #### 3. Results<br>
 The results can be found under the "results" folder in output path, with for tables: known_junction.tab, known_junction_details.tab, novel_junction.tab and novel_junction_details.tab.<br>
+
 **known_junction.tab**<br>
 The LeTRS output table for known subgenomic mRNA in the sequencing data. "ref_leader_end" and "peak_leader_end" point to the reference position of the end of leader and the position of the end of leader identified in the most common reads (peak count) on the reference genome, and "ref_TRS_start" and "peak_TRS_start" refer to the reference position of the start of TRS and the position of the start of TRS identified in the most common reads (peak count) on the reference genome.<br>
+
 **known_junction_details.tab**<br>
 The LeTRS output table for details of known subgenomic mRNA in the sequencing data. "peak_leader" and "peak_TRS_start" point to the leader-TRS junctions in known_junction.tab, "ACGAAC" indicates if there is a ACGAAC sequence in the "TRS_seq" (TRS sequences), "20_leader_seq" refers to the 20 nucleotides before the end of leader, and "ATG_postion" and "first_orf_aa" refer to the first AUG position and translated orf of the sgmRNA.<br>
+
 **novel_junction.tab**<br>
 The LeTRS output table for novel subgenomic mRNA in the sequencing data. "leader_end" and "TRS_start" refer to the position of the end of leader and the position of the start of TRS identified in the reads >10.<br>
+
 **novel_junction_details.tab**<br>
 The LeTRS output table for details of novel subgenomic mRNA in the sequencing data. "peak_leader" and "peak_TRS_start" point to the leader-TRS junctions in novel_junction.tab, "ACGAAC" indicates if there is a ACGAAC sequences in the "TRS_seq" (TRS sequences), "20_leader_seq" refers to the 20 nucleotides before the end of leader, "AUG_postion" and "first_orf_aa" refer to the first AUG position and translated orf of the sgmRNA, and "known_AUG" indicates if the first AUG position same as a known sgmRNA.<br>
 
