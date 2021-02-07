@@ -46,7 +46,7 @@ Please see the details of each parameters by:<br>
 *perl LeTRS.pl -t 16 -extractfasta -mode illumia -bam example.bam -o LeTRS_output*<br>
 
 #### 3. Results<br>
-The results can be found under the "results" folder in output path, with for tables: known_junction.tab, known_junction_details.tab, novel_junction.tab and novel_junction_details.tab<br>
+The results can be found under the "results" folder in output path, with for tables: known_junction.tab, known_junction_details.tab, novel_junction.tab and novel_junction_details.tab.<br>
 **known_junction.tab**<br>
 The LeTRS output table for known subgenomic mRNA in the sequencing data. "ref_leader_end" and "peak_leader_end" point to the reference position of the end of leader and the position of the end of leader identified in the most common reads (peak count) on the reference genome, and "ref_TRS_start" and "peak_TRS_start" refer to the reference position of the start of TRS and the position of the start of TRS identified in the most common reads (peak count) on the reference genome.<br>
 **known_junction_details.tab**<br>
