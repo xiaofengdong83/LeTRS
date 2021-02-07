@@ -363,10 +363,10 @@ sub parseresult {
     print KNOWNJUNCATIONSDETAILS "subgenome\tpeak_leader_end\tpeak_TRS_start\tACGAAC\tATG_postion\t20_leader_seq\tTRS_seq\tfirst_orf_aa\n";
 
     open (NOVEL, ">$outputpath/results/novel_junction.tab");
-    print NOVEL "subgenome\tleader_end\tTRS_start\tnb_count\tnormalized_count\tportcullis_index\t\n";
+    print NOVEL "subgenome\tleader_end\tTRS_start\tnb_count\tnormalized_count\n";
     
     open (KNOWNJUNCATIONS, ">$outputpath/results/known_junction.tab");
-    print KNOWNJUNCATIONS "subgenome\tref_leader_end\tpeak_leader_end\tref_TRS_start\tpeak_TRS_start\tpeak_count\tpeak_normalized_count\tcluster_count\tcluster_normalized_count\tpeak_portcullis_index\n";
+    print KNOWNJUNCATIONS "subgenome\tref_leader_end\tpeak_leader_end\tref_TRS_start\tpeak_TRS_start\tpeak_count\tpeak_normalized_count\tcluster_count\tcluster_normalized_count\n";
     
     open (JBED, "$pathtoreference/junction.bed");
     my @junctions=<JBED>;
@@ -560,7 +560,7 @@ sub parseresult {
         #####peak count of junction
         if ($options{'Rtch'} eq "RNA" && !exists $options{'bam'}) {
             if ($#clusters == -1) {
-                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t0\t$junctionsites[2]\t0\t0\t0\t0\t0\t0\n";
+                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t0\t$junctionsites[2]\t0\t0\t0\t0\t0\n";
             }else{
                 my @eachtabsagain=split(/\t/,$hashtabr{$clusters[-1]});
                 my $covratiopeack=sprintf("%.2f", $eachtabsagain[3]/$mappedcoverage[0]*1000000);
@@ -578,11 +578,11 @@ sub parseresult {
 
                 #my $testlength=$#{$hashassp{"$eachtabsagain[1]\t$eachtabsagain[2]"}}+1;
                 &extractdetails ($junctionsites[0],$eachtabsagain[1],$eachtabsagain[2]);
-                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t$eachtabsagain[1]\t$junctionsites[2]\t$eachtabsagain[2]\t$eachtabsagain[3]\($countployAcounts1,$countployAcounts5\)\t$covratiopeack\($covcountployAcounts1,$covcountployAcounts5\)\t$sumclustercounts\($sumclusterployAcounts1,$sumclusterployAcounts5\)\t$covratiocluster\($covsumclusterployAcounts1,$covsumclusterployAcounts5\)\t$clusters[-1]\n";
+                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t$eachtabsagain[1]\t$junctionsites[2]\t$eachtabsagain[2]\t$eachtabsagain[3]\($countployAcounts1,$countployAcounts5\)\t$covratiopeack\($covcountployAcounts1,$covcountployAcounts5\)\t$sumclustercounts\($sumclusterployAcounts1,$sumclusterployAcounts5\)\t$covratiocluster\($covsumclusterployAcounts1,$covsumclusterployAcounts5\)\n";
             }
         }elsif ($options{'Rtch'} eq "cDNA" && !exists $options{'bam'}) {
             if ($#clusters == -1) {
-                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t0\t$junctionsites[2]\t0\t0\t0\t0\t0\t0\n";
+                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t0\t$junctionsites[2]\t0\t0\t0\t0\t0\n";
             }else{
                 my @eachtabsagain=split(/\t/,$hashtabr{$clusters[-1]});
                 my $covratiopeack=sprintf("%.2f", $eachtabsagain[3]/$mappedcoverage[0]*1000000);
@@ -639,11 +639,11 @@ sub parseresult {
                 
                 #my $testlength=$#{$hashassp{"$eachtabsagain[1]\t$eachtabsagain[2]"}}+1;
                 &extractdetails ($junctionsites[0],$eachtabsagain[1],$eachtabsagain[2]);
-                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t$eachtabsagain[1]\t$junctionsites[2]\t$eachtabsagain[2]\t$eachtabsagain[3]\($sumclusterleftprimercountspeak,$sumclusterrightprimercountspeak,$clusterleftrightprimeridsintersectioncountpeak,$countployAcounts1,$countployAcounts5\)\t$covratiopeack\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covcountployAcounts1,$covcountployAcounts5\)\t$sumclustercounts\($sumclusterleftprimercounts,$sumclusterrightprimercounts,$clusterleftrightprimeridsintersectioncount,$sumclusterployAcounts1,$sumclusterployAcounts5\)\t$covratiocluster\($covsumclusterleftprimercounts,$covsumclusterrightprimercounts,$covclusterleftrightprimeridsintersectioncount,$covsumclusterployAcounts1,$covsumclusterployAcounts5\)\t$clusters[-1]\n";
+                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t$eachtabsagain[1]\t$junctionsites[2]\t$eachtabsagain[2]\t$eachtabsagain[3]\($sumclusterleftprimercountspeak,$sumclusterrightprimercountspeak,$clusterleftrightprimeridsintersectioncountpeak,$countployAcounts1,$countployAcounts5\)\t$covratiopeack\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covcountployAcounts1,$covcountployAcounts5\)\t$sumclustercounts\($sumclusterleftprimercounts,$sumclusterrightprimercounts,$clusterleftrightprimeridsintersectioncount,$sumclusterployAcounts1,$sumclusterployAcounts5\)\t$covratiocluster\($covsumclusterleftprimercounts,$covsumclusterrightprimercounts,$covclusterleftrightprimeridsintersectioncount,$covsumclusterployAcounts1,$covsumclusterployAcounts5\)\n";
             }
         }elsif ($options{'mode'} eq "illumia" && !exists $options{'bam'}) {
             if ($#clusters == -1) {
-                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t0\t$junctionsites[2]\t0\t0\t0\t0\t0\t0\n";
+                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t0\t$junctionsites[2]\t0\t0\t0\t0\t0\n";
             }else{
                 my @eachtabsagain=split(/\t/,$hashtabr{$clusters[-1]});
                 #my $countATGsiteid=grep($_>$adjectorfup+1, @{$hashassp{"$eachtabsagain[1]\t$eachtabsagain[2]"}});
@@ -716,18 +716,18 @@ sub parseresult {
                 
                 #my $testlength=$#{$hashassp{"$eachtabsagain[1]\t$eachtabsagain[2]"}}+1;
                 &extractdetails ($junctionsites[0],$eachtabsagain[1],$eachtabsagain[2]);
-                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t$eachtabsagain[1]\t$junctionsites[2]\t$eachtabsagain[2]\t$eachtabsagain[3]\($sumclusterleftprimercountspeak,$sumclusterrightprimercountspeak,$clusterleftrightprimeridsintersectioncountpeak,$numberpairedjucntionpeak\)\t$covratiopeack\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covnumberpairedjucntionpeak\)\t$sumclustercounts\($sumclusterleftprimercounts,$sumclusterrightprimercounts,$clusterleftrightprimeridsintersectioncount,$numberpairedjucntioncluster\)\t$covratiocluster\($covsumclusterleftprimercounts,$covsumclusterrightprimercounts,$covclusterleftrightprimeridsintersectioncount,$covnumberpairedjucntioncluster\)\t$clusters[-1]\n";
+                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t$eachtabsagain[1]\t$junctionsites[2]\t$eachtabsagain[2]\t$eachtabsagain[3]\($sumclusterleftprimercountspeak,$sumclusterrightprimercountspeak,$clusterleftrightprimeridsintersectioncountpeak,$numberpairedjucntionpeak\)\t$covratiopeack\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covnumberpairedjucntionpeak\)\t$sumclustercounts\($sumclusterleftprimercounts,$sumclusterrightprimercounts,$clusterleftrightprimeridsintersectioncount,$numberpairedjucntioncluster\)\t$covratiocluster\($covsumclusterleftprimercounts,$covsumclusterrightprimercounts,$covclusterleftrightprimeridsintersectioncount,$covnumberpairedjucntioncluster\)\n";
             }
         }else {
             if ($#clusters == -1) {
-                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t0\t$junctionsites[2]\t0\t0\t0\t0\t0\t0\n";
+                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t0\t$junctionsites[2]\t0\t0\t0\t0\t0\n";
             }else{
                 my @eachtabsagain=split(/\t/,$hashtabr{$clusters[-1]});
                 my $covratiopeack=sprintf("%.2f", $eachtabsagain[3]/$mappedcoverage[0]*1000000);
                 my $covratiocluster=sprintf("%.2f", $sumclustercounts/$mappedcoverage[0]*1000000);
                 
                 &extractdetails ($junctionsites[0],$eachtabsagain[1],$eachtabsagain[2]);
-                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t$eachtabsagain[1]\t$junctionsites[2]\t$eachtabsagain[2]\t$eachtabsagain[3]\t$covratiopeack\t$sumclustercounts\t$covratiocluster\t$clusters[-1]\n";
+                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t$eachtabsagain[1]\t$junctionsites[2]\t$eachtabsagain[2]\t$eachtabsagain[3]\t$covratiopeack\t$sumclustercounts\t$covratiocluster\n";
             }
         }
         
@@ -767,7 +767,7 @@ sub parseresult {
             #my $testlength=$#{$hashassp{"$eachnvelintable[1]\t$eachnvelintable[2]"}}+1;
             
             &extractdetailsnovel($n,$eachnvelintable[1],$eachnvelintable[2]);
-            print NOVEL "$n\t$eachnvelintable[1]\t$eachnvelintable[2]\t$eachnvelintable[3]\($countployAcounts1novel,$countployAcounts5novel\)\t$covnoveluniqe\($covcountployAcounts1novel,$covcountployAcounts5novel\)\t$eachnvelintable[0]\n";
+            print NOVEL "$n\t$eachnvelintable[1]\t$eachnvelintable[2]\t$eachnvelintable[3]\($countployAcounts1novel,$countployAcounts5novel\)\t$covnoveluniqe\($covcountployAcounts1novel,$covcountployAcounts5novel\)\n";
         }
     }elsif ($options{'Rtch'} eq "cDNA" && !exists $options{'bam'}) {
         my $n=0;
@@ -820,7 +820,7 @@ sub parseresult {
             #my $testlength=$#{$hashassp{"$eachnvelintable[1]\t$eachnvelintable[2]"}}+1;
             
             &extractdetailsnovel($n,$eachnvelintable[1],$eachnvelintable[2]);
-            print NOVEL "$n\t$eachnvelintable[1]\t$eachnvelintable[2]\t$eachnvelintable[3]\($sumclusterleftprimercountspeak,$sumclusterrightprimercountspeak,$clusterleftrightprimeridsintersectioncountpeak,$countployAcounts1novel,$countployAcounts5novel\)\t$covnoveluniqe\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covcountployAcounts1novel,$covcountployAcounts5novel\)\t$eachnvelintable[0]\n";
+            print NOVEL "$n\t$eachnvelintable[1]\t$eachnvelintable[2]\t$eachnvelintable[3]\($sumclusterleftprimercountspeak,$sumclusterrightprimercountspeak,$clusterleftrightprimeridsintersectioncountpeak,$countployAcounts1novel,$countployAcounts5novel\)\t$covnoveluniqe\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covcountployAcounts1novel,$covcountployAcounts5novel\)\n";
         }
     }elsif ($options{'mode'} eq "illumia" && !exists $options{'bam'}) {
         my $n=0;
@@ -889,7 +889,7 @@ sub parseresult {
                 
             #my $testlength=$#{$hashassp{"$eachnvelintable[1]\t$eachnvelintable[2]"}}+1;
             &extractdetailsnovel($n,$eachnvelintable[1],$eachnvelintable[2]);
-            print NOVEL "$n\t$eachnvelintable[1]\t$eachnvelintable[2]\t$eachnvelintable[3]\($sumclusterleftprimercountspeak,$sumclusterrightprimercountspeak,$clusterleftrightprimeridsintersectioncountpeak,$numberpairedjucntionpeak\)\t$covnoveluniqe\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covnumberpairedjucntionpeak\)\t$eachnvelintable[0]\n";
+            print NOVEL "$n\t$eachnvelintable[1]\t$eachnvelintable[2]\t$eachnvelintable[3]\($sumclusterleftprimercountspeak,$sumclusterrightprimercountspeak,$clusterleftrightprimeridsintersectioncountpeak,$numberpairedjucntionpeak\)\t$covnoveluniqe\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covnumberpairedjucntionpeak\)\n";
         }
     }else{
         my $n=0;
@@ -900,7 +900,7 @@ sub parseresult {
             my $covnoveluniqe=sprintf("%.2f", $eachnvelintable[3]/$mappedcoverage[0]*1000000);
             #my $testlength=$#{$hashassp{"$eachnvelintable[1]\t$eachnvelintable[2]"}}+1;
             &extractdetailsnovel($n,$eachnvelintable[1],$eachnvelintable[2]);
-            print NOVEL "$n\t$eachnvelintable[1]\t$eachnvelintable[2]\t$eachnvelintable[3]\t$covnoveluniqe\t$eachnvelintable[0]\n";
+            print NOVEL "$n\t$eachnvelintable[1]\t$eachnvelintable[2]\t$eachnvelintable[3]\t$covnoveluniqe\n";
         }        
     }
     
