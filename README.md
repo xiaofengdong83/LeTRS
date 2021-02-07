@@ -9,7 +9,7 @@ minimap2(>=2.17)<br>
 [portcullis](https://github.com/maplesond/portcullis)(=1.1.2)<br>
 
 All these three party tools dependences should be exported to PATH, so that LsTRS can din them. We suggest to install the portcullis with conda as below:<br>
-conda install portcullis=1.1.2 --channel=bioconda<br>
+conda install portcullis=1.1.2<br>
 
 **Perl module dependences:**<br>
 Getopt::Long<br>
@@ -23,7 +23,7 @@ Statistics::R<br>
 **R module dependences (for plotting):**<br>
 ggplot2<br>
 
-#### 2.Usages <br>
+#### 2.Usages<br>
 Please see the details of each parameters by:<br>
 
 **Examples:**<br>
@@ -42,7 +42,18 @@ Please see the details of each parameters by:<br>
 (5) To analyse customize bam file reads derived from any platform aligned by using a splicing mapping method.<br>
 *perl LeTRS.pl -t 16 -extractfasta -mode illumia -bam example.bam -o LeTRS_output*<br>
 
-#### 3. Plotting  <br>
+#### 3. Results<br>
+The results can be found under the "results" folder in output path, with for tables: known_junction.tab, known_junction_details.tab, novel_junction.tab and novel_junction_details.tab<br>
+**known_junction.tab**<br>
+The LeTRS output table for known subgenomic mRNA in the sequencing data. ref_leader_end and peak_leader_end point to the reference position of the end of leader and the position of the end of leader identified in the most common reads (peak count) on the reference genome, and ref_TRS_start and peak_TRS_start refer to the reference position of the start of TRS and the position of the start of TRS identified in the most common reads (peak count) on the reference genome.<br>
+**known_junction_details.tab**<br>
+The LeTRS output table for details of known subgenomic mRNA in the sequencing data. peak_leader and peak_TRS_start point to the leader-TRS junctions in known_junction.tab, ACGAAC indicates if there is a ACGAAC sequence in the TRS_seq (TRS sequences), 20_leader_seq refers to the 20 nucleotides before the end of leader, and ATG_postion and first_orf_aa refer to the first AUG position and translated orf of the sgmRNA.<br>
+**novel_junction.tab**<br>
+The LeTRS output table for novel subgenomic mRNA in the sequencing data. leader_end and TRS_start refer to the position of the end of leader and the position of the start of TRS identified in the reads >10.<br>
+**novel_junction_details.tab**<br>
+The LeTRS output table for details of novel subgenomic mRNA in the sequencing data. peak_leader and peak_TRS_start point to the leader-TRS junctions in novel_junction.tab, ACGAAC indicates if there is a ACGAAC sequences in the TRS_seq (TRS sequences), 20_leader_seq refers to the 20 nucleotides before the end of leader, AUG_postion and first_orf_aa refer to the first AUG position and translated orf of the sgmRNA, and known_AUG indicates if the first AUG position same as a known sgmRNA.<br>
+
+#### 4. Plotting<br>
 There is also a perl script that can plot a diagram for the output of LeTRS.pl.<br>
 
 **Examples:**<br>
@@ -54,5 +65,3 @@ There is also a perl script that can plot a diagram for the output of LeTRS.pl.<
 
 #### 4. Customize leader-TRS junctions and sars-cov-2 or other coronavirus genome as reference.<br>
 Please the see the "readme.txt" file in the "making_reference_folder_example" folder.<br>
-
-
