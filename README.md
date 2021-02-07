@@ -9,6 +9,9 @@ minimap2(>=2.17)<br>
 [portcullis](https://github.com/maplesond/portcullis)(=1.1.2)<br>
 
 All these three party tools dependences should be exported to PATH, so that LsTRS can din them. We suggest to install the portcullis with conda as below:<br>
+conda config --add channels defaults<br>
+conda config --add channels bioconda<br>
+conda config --add channels conda-forge<br>
 conda install portcullis=1.1.2<br>
 
 **Perl module dependences:**<br>
