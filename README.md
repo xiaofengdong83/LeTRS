@@ -30,16 +30,16 @@ ggplot2<br>
 Please see the details of each parameters by:<br>
 
 **Examples:**<br>
-(1) To analyse ARTIC V3 noropore cDNA sequencing data and extract the reads contain the identified leader-TRS junctions in fasta format:<br>
+(1) To analyse ARTIC V3 noropore cDNA sequencing data and extract the reads contain the identified leader-TRS junctions in fasta format (The ARTIC primer_bed can be found in the "primer_bed" folder):<br>
 *perl LeTRS.pl -t 16 -extractfasta -Rtch cDNA -mode noropore -fa example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output*<br>
 
-(2) To analyse direct RNA noropore sequencing data and extract the reads contain the identified leader-TRS junctions in fasta format:<br>
-*perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode noropore -fq example.fastq.gz -o LeTRS_output*<br>
+(2) To analyse direct RNA noropore sequencing data and extract the reads contain the identified leader-TRS junctions in fasta format (The ARTIC primer_bed can be found in the "primer_bed" folder):<br>
+*perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode noropore -fq example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output*<br>
 
-(3) To analyse direct RNA noropore sequencing data with customize leader-TRS junctions and sars-cov-2 or other coronavirus genome as reference, and extract the reads contain the identified leader-TRS junctions in fasta format:<br>
-*perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode noropore -fq example.fastq.gz -o LeTRS_output -ref reference_folder*<br>
+(3) To analyse direct RNA noropore sequencing data with customize leader-TRS junctions and sars-cov-2 or other coronavirus genome as reference, and extract the reads contain the identified leader-TRS junctions in fasta format (The ARTIC primer_bed can be found in the "primer_bed" folder):<br>
+*perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode noropore -fq example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output -ref reference_folder*<br>
 
-(4) To analyse paired end illumina sequencing data and extract the reads contain the identified leader-TRS junctions in fasta format:<br>
+(4) To analyse paired end illumina sequencing data and extract the reads contain the identified leader-TRS junctions in fasta format (The ARTIC primer_bed can be found in the "primer_bed" folder):<br>
 *perl LeTRS.pl -t 16 -extractfasta -mode illumia -fq #1.fasq.gz:#2.fasq.gz -primer_bed primer_V3.bed -o LeTRS_output*<br>
 
 (5) To analyse customize bam file reads derived from any platform aligned by using a splicing mapping method.<br>
