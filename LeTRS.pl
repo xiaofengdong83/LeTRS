@@ -38,8 +38,8 @@ if ((keys (%options))==0) {
 if ($options{'help'}) {
     print "\nUsage example\:
   perl LeTRS.pl -t 16 -extractfasta -Rtch cDNA -mode noropore -fa example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output 
-  perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode noropore -fq example.fastq.gz -o LeTRS_output
-  perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode noropore -fq example.fastq.gz -o LeTRS_output -ref reference_folder
+  perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode noropore -fq example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output
+  perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode noropore -fq example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output -ref reference_folder
   perl LeTRS.pl -t 16 -extractfasta -mode illumia -fq #1.fasq.gz:#2.fasq.gz -primer_bed primer_V3.bed -o LeTRS_output
   perl LeTRS.pl -t 16 -extractfasta -mode illumia -bam example.bam -o LeTRS_output
 
@@ -926,24 +926,24 @@ sub parseresult {
     ######export result
     if ($options{'Rtch'} eq "RNA" && !exists $options{'bam'}) {
         print KNOWNJUNCATIONS "The numbers in the bracket are (reads with > 1 poly A, reads with > 5 poly A)\.\n";
-        print KNOWNJUNCATIONS "Normalized count=(Read count-Total number of read mapped on reference genome)*1000000\.\n";
+        print KNOWNJUNCATIONS "Normalized count=(Read count/Total number of read mapped on reference genome)*1000000\.\n";
         print KNOWNJUNCATIONS "Total number of read mapped on reference genome is $mappedcoverage[0], excluding mapped reads on reverse strand, not primary alignment and supplementary alignment\.\n";
         print NOVEL "The numbers in the bracket are (reads with > 1 poly A, reads with > 5 poly A)\.\n";
-        print NOVEL "Normalized count=(Read count-Total number of read mapped on reference genome)*1000000\.\n";
+        print NOVEL "Normalized count=(Read count/Total number of read mapped on reference genome)*1000000\.\n";
         print NOVEL "Total number of read mapped on reference genome is $mappedcoverage[0], excluding mapped reads on reverse strand, not primary alignment and supplementary alignment\.\n";
     }elsif ($options{'Rtch'} eq "cDNA" && !exists $options{'bam'}) {
         print KNOWNJUNCATIONS "The numbers in the bracket are (reads with left primers, reads with right primers, reads with both primers, reads with > 1 poly A, reads with > 5 poly A)\.\n";
-        print KNOWNJUNCATIONS "Normalized count=(Read count-Total number of read mapped on reference genome)*1000000\.\n";
+        print KNOWNJUNCATIONS "Normalized count=(Read count/Total number of read mapped on reference genome)*1000000\.\n";
         print KNOWNJUNCATIONS "Total number of read mapped on reference genome is $mappedcoverage[0], excluding the mapped reads not primary alignment and supplementary alignment\.\n";
         print NOVEL "The numbers in the bracket are (reads with left primers, reads with right primers, reads with both primers, reads with > 1 poly A, reads with > 5 poly A)\.\n";
-        print NOVEL "Normalized count=(Read count-Total number of read mapped on reference genome)*1000000\.\n";
+        print NOVEL "Normalized count=(Read count/Total number of read mapped on reference genome)*1000000\.\n";
         print NOVEL "Total number of read mapped on reference genome doesn't include the mapped reads not primary alignment and supplementary alignment\.\n";
     }elsif ($options{'mode'} eq "illumia" && !exists $options{'bam'}) {
         print KNOWNJUNCATIONS "The numbers in the bracket are (reads with left primers, reads with right primers, reads with both primers, same junction on paired reads with at least a primer)\.\n";
-        print KNOWNJUNCATIONS "Normalized count=(Read count-Total number of read mapped on reference genome)*1000000\.\n";
+        print KNOWNJUNCATIONS "Normalized count=(Read count/Total number of read mapped on reference genome)*1000000\.\n";
         print KNOWNJUNCATIONS "Total number of read mapped on reference genome is $mappedcoverage[0], excluding the mapped reads unpaired, not primary alignment and supplementary alignment\.\n";
         print NOVEL "The numbers in the bracket are (reads with left primers, reads with right primers, reads with both primers, same junction on paired reads with at least a primer)\.\n";
-        print NOVEL "Normalized count=(Read count-Total number of read mapped on reference genome)*1000000\.\n";
+        print NOVEL "Normalized count=(Read count/Total number of read mapped on reference genome)*1000000\.\n";
         print NOVEL "Total number of read mapped on reference is $mappedcoverage[0], excluding the mapped reads unpaired, not primary alignment and supplementary alignment\.\n";
     }
     close NOVEL; close KNOWNJUNCATIONS;
