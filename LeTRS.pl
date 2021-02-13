@@ -970,7 +970,7 @@ sub extractdetails {
             $TRSseqall =~ m/ATG/ig;
             my $atgporstion=pos($TRSseqall)+$each4-3;
             my $TRSseq;
-            if ($each2 < $atgporstion) {
+            if ($each4 < $atgporstion) {
                 $TRSseq=$seq->subseq($each4,$atgporstion-1);
             }else {
                 $TRSseq="\-";
