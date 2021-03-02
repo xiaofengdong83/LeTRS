@@ -37,16 +37,16 @@ if ((keys (%options))==0) {
 # If the -help option is set, print the usage and exit
 if ($options{'help'}) {
     print "\nUsage example\:
-  perl LeTRS.pl -t 16 -extractfasta -Rtch cDNA -mode noropore -fa example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output 
-  perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode noropore -fq example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output
-  perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode noropore -fq example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output -ref reference_folder
+  perl LeTRS.pl -t 16 -extractfasta -Rtch cDNA -mode nanopore -fa example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output 
+  perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode nanopore -fq example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output
+  perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode nanopore -fq example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output -ref reference_folder
   perl LeTRS.pl -t 16 -extractfasta -mode illumia -fq #1.fasq.gz:#2.fasq.gz -primer_bed primer_V3.bed -o LeTRS_output
   perl LeTRS.pl -t 16 -extractfasta -mode illumia -bam example.bam -o LeTRS_output
 
 Required options:
-  -mode             \"noropore\" or \"illumia\" of the input fastq file.
-  -Rtch             \"RNA\" (direct RNA) or \"cDNA\" (amplicon cDNA) to indicate the sequencing library for \"noropore\" mode.
-  -primer_bed       amplicon primer bed file is required for \"noropore cDNA\" and \"illumina\" modes.
+  -mode             \"nanopore\" or \"illumia\" of the input fastq file.
+  -Rtch             \"RNA\" (direct RNA) or \"cDNA\" (amplicon cDNA) to indicate the sequencing library for \"nanopore\" mode.
+  -primer_bed       amplicon primer bed file is required for \"nanopore cDNA\" and \"illumina\" modes.
   -fq               fastq file (the paired reads can be provide as \"#1.fasq.gz:#2.fasq.gz\").
   -bam              custom bam can also be provided if the \"-fq\" dosen't exist.
   -ref              custom sars-cov-2 or other coronavirus reference folder.
@@ -56,8 +56,8 @@ Optional options:
   -noguide          this option turns off the known leader-TRS guided alignment.
   -t/-thread        number of threads, 1 by default.
   -o                output path, \"./\" by default.
-  -adjleader INT    leader junction boundary tolerance +-10 nts default.
-  -adjTRS INT       TRS junction boundary tolerance -20 nts to 1 nt ahead the ATG of knonwn orfs default.
+  -adjleader INT    leader junction boundary tolerance +-10 nts by default.
+  -adjTRS INT       TRS junction boundary tolerance -20 nts to 1 nt ahead the ATG of knonwn orfs by default.
   -covcutoff INT    coverge cutoff for the novel leader-TRS indentification, 10 by default.
 
   -h/-help          Produce help message.\n\n";
@@ -118,7 +118,7 @@ print "path: $outputpath\n";
 ###################### parsing ######################
 my $leaderadjectnumber;
 if (!exists ($options{'adjleader'})) {
-    if ($options{'mode'} eq "noropore") {
+    if ($options{'mode'} eq "nanopore") {
         $leaderadjectnumber= "10";
     }elsif ($options{'mode'} eq "illumia") {
         $leaderadjectnumber= "10";
@@ -130,7 +130,7 @@ print "junction site at leader adject number: \+\-$leaderadjectnumber\n";
 
 my $orfadjectnumber;
 if (!exists ($options{'adjorf'})) {
-    if ($options{'mode'} eq "noropore") {
+    if ($options{'mode'} eq "nanopore") {
         $orfadjectnumber= "20";
     }elsif ($options{'mode'} eq "illumia") {
         $orfadjectnumber= "20";
@@ -149,8 +149,8 @@ if (!exists ($options{'covcutoff'})) {
 print "novel junction cov cutoff: $cutoff\n";
 
 ###################### script running ######################
-if ($options{'mode'} eq "noropore") {
-    print "it is noropore mode now\n";
+if ($options{'mode'} eq "nanopore") {
+    print "it is nanopore mode now\n";
     if ($chackbam==0 and $chackfa==1) {
         if (!exists ($options{'Rtch'})) {
             print "please indicate the minion seq model: RNA or cDNA in --Rtch\n";
@@ -160,7 +160,7 @@ if ($options{'mode'} eq "noropore") {
             print "please provide a primer bed file\n";
             exit;
         }
-        &mappingnoropore;
+        &mappingnanopore;
         print "looking for the leader-TRS\n";
         &tabfix;
         &bamparse;
@@ -171,7 +171,7 @@ if ($options{'mode'} eq "noropore") {
             exit;
         }
         $options{'Rtch'}=0;
-        &bamnoropore;
+        &bamnanopore;
         print "looking for the leader-TRS\n";
         &tabfix;
         &bamparse;
@@ -207,11 +207,11 @@ if ($options{'mode'} eq "noropore") {
         &parseresult;
     }
 }else {
-    print "please select illumia or noropore mode to run\n";
+    print "please select illumia or nanopore mode to run\n";
 }
 
 ###################### Mapping SUBS ######################
-sub mappingnoropore {
+sub mappingnanopore {
     my $lable="alignment";
     mkdir "$outputpath/$lable\_output";
     
@@ -237,7 +237,7 @@ sub mappingnoropore {
     system ("portcullis junc --intron_gff --exon_gff -t $thread --orientation SE -o $outputpath/$lable\_output/$lable\_portcullis_out $outputpath/$lable\_output/$lable\_portcullis_out");
 }
 
-sub bamnoropore {
+sub bamnanopore {
     my $lable="alignment";
     mkdir "$outputpath/$lable\_output";
     system ("samtools view -@ $thread -b -q 10 -F 2304 $options{'bam'} | samtools sort -@ $thread -o $outputpath/$lable\_output/$lable\.sorted.bam");
@@ -358,7 +358,7 @@ my %junctionhash;
 sub parseresult {
     mkdir "$outputpath/results";
     open (NOVELDETAILS, ">$outputpath/results/novel_junction_details.tab");
-    print NOVELDETAILS "subgenome\tpeak_leader_end\tpeak_TRS_start\tACGAAC\tATG_postion\tknown_ATG\t20_leader_seq\tTRS_seq\tfirst_orf_aa\n";
+    print NOVELDETAILS "subgenome\tleader_end\tTRS_start\tACGAAC\tATG_postion\tknown_ATG\t20_leader_seq\tTRS_seq\tfirst_orf_aa\n";
     open (KNOWNJUNCATIONSDETAILS, ">$outputpath/results/known_junction_details.tab");
     print KNOWNJUNCATIONSDETAILS "subgenome\tpeak_leader_end\tpeak_TRS_start\tACGAAC\tATG_postion\t20_leader_seq\tTRS_seq\tfirst_orf_aa\n";
 
@@ -945,6 +945,9 @@ sub parseresult {
         print NOVEL "The numbers in the bracket are (reads with left primers, reads with right primers, reads with both primers, same junction on paired reads with at least a primer)\.\n";
         print NOVEL "Normalized count=(Read count/Total number of read mapped on reference genome)*1000000\.\n";
         print NOVEL "Total number of read mapped on reference is $mappedcoverage[0], excluding the mapped reads unpaired, not primary alignment and supplementary alignment\.\n";
+    }else{
+        print KNOWNJUNCATIONS "Total number of read mapped on reference genome is $mappedcoverage[0], excluding the mapped reads unpaired, not primary alignment and supplementary alignment\.\n";
+        print NOVEL "Total number of read mapped on reference is $mappedcoverage[0], excluding the mapped reads unpaired, not primary alignment and supplementary alignment\.\n";
     }
     close NOVEL; close KNOWNJUNCATIONS;
     close KNOWNJUNCATIONSDETAILS; close NOVELDETAILS;
@@ -982,7 +985,7 @@ sub extractdetails {
                 print KNOWNJUNCATIONSDETAILS "no\t";
             }
 
-            my $prot_obj =$seq->trunc($each4,$genomelength)->translate(-orf => 1, -start => "atg");
+            my $prot_obj =$seq->trunc($each4-1,$genomelength)->translate(-orf => 1, -start => "atg");
             print KNOWNJUNCATIONSDETAILS "$atgporstion\t";
             print KNOWNJUNCATIONSDETAILS "$leaderseq\t";
             print KNOWNJUNCATIONSDETAILS "$TRSseq\t";
@@ -1002,35 +1005,42 @@ sub extractdetailsnovel {
         my $leaderseq=$seq->subseq($each1-19,$each1);
         my $TRSseqall=$seq->subseq($each2,$genomelength);            
         $TRSseqall =~ m/ATG/ig;
-        my $atgporstion=pos($TRSseqall)+$each2-3;
-        $atgporstionnovel=$atgporstion;
+        if (defined pos($TRSseqall)) {
+            my $atgporstion=pos($TRSseqall)+$each2-3;
+            $atgporstionnovel=$atgporstion;
         
-        my $known_ATG;
-        if (exists $junctionhash{$atgporstion}) {
-            $known_ATG=$junctionhash{$atgporstion};
-        }else{
-            $known_ATG="\-";
-        }
+            my $known_ATG;
+            if (exists $junctionhash{$atgporstion}) {
+                $known_ATG=$junctionhash{$atgporstion};
+            }else{
+                $known_ATG="\-";
+            }
         
-        my $TRSseq;
-        if ($each2 < $atgporstion) {
-            $TRSseq=$seq->subseq($each2,$atgporstion-1);
-        }else {
-            $TRSseq="\-";
-        }
+            my $TRSseq;
+            if ($each2 < $atgporstion) {
+                $TRSseq=$seq->subseq($each2,$atgporstion-1);
+            }else {
+                $TRSseq="\-";
+            }
 
-        if ($TRSseq =~ m/ACGAAC/ig) {
-            print NOVELDETAILS "yes\t";
-        }else {
-            print NOVELDETAILS "no\t";
-        }
+            if ($TRSseq =~ m/ACGAAC/ig) {
+                print NOVELDETAILS "yes\t";
+            }else {
+                print NOVELDETAILS "no\t";
+            }
 
-        
-        my $prot_obj =$seq->trunc($each2,$genomelength)->translate(-orf => 1, -start => "atg");
-        print NOVELDETAILS "$atgporstion\t";
-        print NOVELDETAILS "$known_ATG\t";
-        print NOVELDETAILS "$leaderseq\t";
-        print NOVELDETAILS "$TRSseq\t";
-        print NOVELDETAILS $prot_obj->seq, "\n";
+            my $prot_obj =$seq->trunc($each2-1,$genomelength)->translate(-orf => 1, -start => "atg");
+            print NOVELDETAILS "$atgporstion\t";
+            print NOVELDETAILS "$known_ATG\t";
+            print NOVELDETAILS "$leaderseq\t";
+            print NOVELDETAILS "$TRSseq\t";
+            print NOVELDETAILS $prot_obj->seq, "\n";
+        }else {
+            print NOVELDETAILS "\-\t";
+            print NOVELDETAILS "\-\t";
+            print NOVELDETAILS "\-\t";
+            print NOVELDETAILS "\-\n";
+            print NOVELDETAILS "\-\n";
+        }
     }
 }

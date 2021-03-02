@@ -30,9 +30,11 @@ if ($options{'help'}) {
   -i                input files \"known_junction.tab\" or \"novel_junction.tab\".
   -o                output path, \"./\" by default.
   -count            1,2,3.. indicates the value in the column of peak_count in \"known_junction.tab\"
-                    or nb_count in the \"novel_junction.tab\".
+                    or nb_count in the \"novel_junction.tab\". 0 indicates the number of reads with
+                    at least 1 primer sequences in peak_count or nb_count.
   -ratio            1,2,3.. indicates the value in the column of peak_count_ratio in \"known_junction.tab\"
-                    or count_ratio in the \"novel_junction.tab\".
+                    or count_ratio in the \"novel_junction.tab\". 0 indicates the number of reads with
+                    at least 1 primer sequences in peak_count or nb_count.
                     
   -h/-help          Produce help message.\n\n";
     exit;
@@ -85,20 +87,39 @@ open(TABLE,"$options{'i'}");
 open(TABLERR,">$outputpath/known_junction_tmp2.tab");
 print TABLERR "leaderorf\tcount\tlevel\n";
 my @tables=<TABLE>;
+close TABLE;
+my $amplicon="no";
+foreach (@tables) {
+   if (/reads with left primers/) {
+      $amplicon="yes";
+   }
+}
+if ($amplicon eq "yes") {
+   &runparsing;
+}elsif (exists $options{'count'} and $amplicon eq "no" and $options{'count'} > 0 ) {
+   &runparsing;
+}elsif (exists $options{'ratio'} and $amplicon eq "no" and $options{'ratio'} > 0 ) {
+   &runparsing;
+}else{
+   print "\"-count 0\" can only be applied for illumina/nanopore amplicon sequencing data\.\n";
+   exit;
+}
+
 my @collection; my @leaders; my @leaders2; my @orfs; my $numfortmp1;
+sub runparsing {
 foreach (@tables) {
    if ($tables[0]=~/^subgenome\tref_leader_end/) {
       unless (/^subgenome\tref_leader_end|The numbers in the bracket|Normalized count\=|Total number of read mapped/) {
          my @each1=split(/\t/);
          my @each2;
          if (exists $options{'count'}) {
-            @each2=split(/\(|\,/,$each1[5]);
+            @each2=split(/\)|\(|\,/,$each1[5]);
          }
          if (exists $options{'ratio'}) {
-            @each2=split(/\(|\,/,$each1[6]);
+            @each2=split(/\)|\(|\,/,$each1[6]);
          }
          
-         unless($each1[2]==0) {
+         unless($each2[0]==0) {
             my $plotvalue;
             if (exists $options{'count'}) {
                 $plotvalue=$options{'count'}-1;
@@ -110,7 +131,16 @@ foreach (@tables) {
             push (@collection, "leader\_$each1[0]\_$each1[2]\tleader\_$each1[2]\t$each1[2]\n");
             push (@collection, "leader\_$each1[0]\_$each1[2]\t$each1[0]\t$each1[0]\n");
             $numfortmp1++;
-            print TABLERR "leader\_$each1[0]\_$each1[2]\t$each2[$plotvalue]\t$numfortmp1\n";
+            if (exists $options{'count'} and $plotvalue == -1) {
+               my $numberwithprimer=$each2[1]+$each2[2]-$each2[3];
+               print TABLERR "leader\_$each1[0]\_$each1[2]\t$numberwithprimer\t$numfortmp1\n";
+            }elsif (exists $options{'ratio'} and $plotvalue == -1) {
+               my $numberwithprimer=$each2[1]+$each2[2]-$each2[3];
+               print TABLERR "leader\_$each1[0]\_$each1[2]\t$numberwithprimer\t$numfortmp1\n";
+            }else {
+               print TABLERR "leader\_$each1[0]\_$each1[2]\t$each2[$plotvalue]\t$numfortmp1\n";
+            }
+            
             push (@leaders, $each1[2]);
             push (@leaders2, "leader\_$each1[0]\_$each1[2]");
             push (@orfs, $each1[0]);
@@ -123,10 +153,10 @@ foreach (@tables) {
          my @each1=split(/\t/);
          my @each2;
          if (exists $options{'count'}) {
-            @each2=split(/\(|\,/,$each1[3]);
+            @each2=split(/\)|\(|\,/,$each1[3]);
          }
          if (exists $options{'ratio'}) {
-            @each2=split(/\(|\,/,$each1[4]);
+            @each2=split(/\)|\(|\,/,$each1[4]);
          }
          
          my $plotvalue;
@@ -141,16 +171,23 @@ foreach (@tables) {
          push (@collection, "$each1[1]\_$each1[2]\tleader\_$each1[1]\t$each1[1]\n");
          push (@collection, "$each1[1]\_$each1[2]\t$each1[2]\t$each1[2]\n");
          $numfortmp1++;
-         print TABLERR "$each1[1]\_$each1[2]\t$each2[$plotvalue]\t$numfortmp1\n";
+         if (exists $options{'count'} and $plotvalue == -1) {
+            my $numberwithprimer=$each2[1]+$each2[2]-$each2[3];
+            print TABLERR "$each1[1]\_$each1[2]\t$numberwithprimer\t$numfortmp1\n";
+         }elsif (exists $options{'ratio'} and $plotvalue == -1) {
+            my $numberwithprimer=$each2[1]+$each2[2]-$each2[3];
+            print TABLERR "$each1[1]\_$each1[2]\t$numberwithprimer\t$numfortmp1\n";
+         }else {
+            print TABLERR "$each1[1]\_$each1[2]\t$each2[$plotvalue]\t$numfortmp1\n";
+         }
+         
          push (@leaders, "$each1[1]");
          push (@leaders2, "$each1[1]\_$each1[2]");
          push (@orfs, $each1[2]);
       }
    }
-   
 }
-close TABLE;
-
+}
 my %hashleader; my $numleaders=0;
 my @uniqleaders=uniq(@leaders);
 foreach (@uniqleaders) {
