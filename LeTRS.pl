@@ -72,7 +72,7 @@ Optional options:
 }
 
 if ($options{'version'}) {
-    print "v1.01\n";
+    print "v1.0.1\n";
     exit;
 }
 
