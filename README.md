@@ -5,7 +5,7 @@ LeTRS was implemented in Perl programming language, including a main script for 
 **(1)Creating an environment in one step**<br>
 wget https://github.com/xiaofengdong83/LeTRS/archive/refs/tags/LeTRS_v1.0.1.tar.gz<br>
 tar zxvf LeTRS_v1.0.1.tar.gz<br>
-cd LeTRS_v1.0.1<br>
+cd LeTRS-LeTRS_v1.0.1<br>
 conda env create -f my_environment.yml<br>
 source activate LeTRS<br>
 
