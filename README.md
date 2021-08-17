@@ -2,19 +2,27 @@
 LeTRS was implemented in Perl programming language, including a main script for identification of leader-TRS junctions and a script for plotting graphs of the results. It accepts fastq files derived from Illumina paired-end and Nanopore cDNA/direct RNA sequencing, and bam files produced by a splicing alignment method with a SARS-CoV-2 genome. By default, LeTRS analyses SARS-CoV-2 by using 10 known leader-TRS junctions and an NCBI reference genome (NC_045512.2), but the user can also provide customized leader-TRS junctions and SARS-CoV-2 or other coronavirus genomes as a reference.<br>
 
 #### 1.Installation:<br>
-**Third party tools dependencies:**<br>
-samtools (>=1.11)<br>
+**(1)Creating an environment in one step**<br>
+wget https://github.com/xiaofengdong83/LeTRS/archive/refs/tags/LeTRS_v0.1.9.tar.gz<br>
+tar zxvf LeTRS_v0.1.9.tar.gz<br>
+cd LeTRS_v0.1.9<br>
+conda env create -f my_environment.yml<br>
+source activate LeTRS<br>
+
+**(2)Creating an environment step by step**<br>
+Third party tools dependencies:<br>
+samtools(>=1.11)<br>
 hisat2(>=2.1.0)<br>
 minimap2(>=2.17)<br>
-[portcullis](https://github.com/maplesond/portcullis)(=1.1.2)<br>
+[portcullis](https://github.com/maplesond/portcullis)(>=1.1.2)<br>
 
 All these third party tool dependencies should be exported to PATH, so that LeTRS can find them. We suggest installing the portcullis with conda as below:<br>
 conda config --add channels defaults<br>
 conda config --add channels bioconda<br>
 conda config --add channels conda-forge<br>
-conda install portcullis=1.1.2<br>
+conda install portcullis=1.2.2<br>
 
-**Perl module dependencies:**<br>
+Perl module dependencies:<br>
 Getopt::Long<br>
 Bio::SeqIO<br>
 File::Basename<br>
@@ -23,7 +31,7 @@ List::Util<br>
 List::Uniq<br>
 Statistics::R<br>
 
-**R module dependencies (for plotting):**<br>
+R module dependencies (for plotting):<br>
 ggplot2<br>
 
 #### 2.Usages<br>
@@ -31,19 +39,19 @@ Please see the details of each parameter by:<br>
 
 **Examples:**<br>
 (1) To analyse ARTIC V3 Nanopore cDNA sequencing data and extract the reads containing the identified leader-TRS junctions in fasta format (The ARTIC primer_bed can be found in the "primer_bed" folder):<br>
-*perl LeTRS.pl -t 16 -extractfasta -Rtch cDNA -mode nanopore -fa example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output*<br>
+*perl LeTRS.pl -t 16 -extractfasta -Rtch cDNA -mode nanopore -fa example.fastq.gz -primer_bed path_to_primer_V3.bed -o LeTRS_output*<br>
 
-(2) To analyse direct RNA Nanopore sequencing data and extract the reads containing the identified leader-TRS junctions in fasta format (The ARTIC primer_bed can be found in the "primer_bed" folder):<br>
-*perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode nanopore -fq example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output*<br>
+(2) To analyse direct RNA Nanopore sequencing data and extract the reads containing the identified leader-TRS junctions in fasta format:<br>
+*perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode nanopore -fq example.fastq.gz -o LeTRS_output*<br>
 
-(3) To analyse direct RNA Nanopore sequencing data with customized leader-TRS junctions and SARS-CoV-2 or other coronavirus genomes as a reference, and extract the reads containing the identified leader-TRS junctions in fasta format (The ARTIC primer_bed can be found in the "primer_bed" folder):<br>
-*perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode nanopore -fq example.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output -ref reference_folder*<br>
+(3) To analyse direct RNA Nanopore sequencing data with customized leader-TRS junctions and SARS-CoV-2 or other coronavirus genomes as a reference, and extract the reads containing the identified leader-TRS junctions in fasta format (The instruction of making a reference_folder could be found in "readme.txt" of "making_reference_folder_example" folder):<br>
+*perl LeTRS.pl -t 16 -extractfasta -Rtch cDNA -mode nanopore -fq example.fastq.gz -primer_bed path_to_custom_primer.bed -o LeTRS_output -ref reference_folder*<br>
 
-(4) To analyse paired end Illumina sequencing data and extract the reads containing the identified leader-TRS junctions in fasta format (The ARTIC primer_bed can be found in the "primer_bed" folder):<br>
-*perl LeTRS.pl -t 16 -extractfasta -mode illumina -fq #1.fastq.gz:#2.fastq.gz -primer_bed primer_V3.bed -o LeTRS_output*<br>
+(4) To analyse paired end Illumina sequencing data and extract the read pairs containing the identified leader-TRS junctions in fasta format (The ARTIC primer_bed can be found in the "primer_bed" folder):<br>
+*perl LeTRS.pl -t 16 -extractfasta -mode illumia -fq #1.fastq.gz:#2.fastq.gz -primer_bed path_to_primer_V3.bed -o LeTRS_output*<br>
 
 (5) To analyse customized bam file reads derived from any platform aligned by using a splicing mapping method.<br>
-*perl LeTRS.pl -t 16 -extractfasta -mode illumina -bam example.bam -o LeTRS_output*<br>
+*perl LeTRS.pl -t 16 -extractfasta -mode illumia -bam example.bam -o LeTRS_output*<br>
 
 #### 3. Results<br>
 The results can be found under the "results" folder in output path, with four tables: known_junction.tab, known_junction_details.tab, novel_junction.tab and novel_junction_details.tab.<br>
