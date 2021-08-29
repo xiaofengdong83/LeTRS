@@ -254,7 +254,7 @@ if ($options{'mode'} eq "nanopore") {
         &bamillumia;
         print "looking for the leader-TRS\n";
         &tabfix;
-        &mappingillumia;
+        &bamparse;
         &parseresult;
     }
 }else {
