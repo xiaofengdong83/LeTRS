@@ -33,6 +33,7 @@ Statistics::R<br>
 
 R module dependencies (for plotting):<br>
 ggplot2<br>
+patchwork<br>
 
 #### 2.Usages<br>
 Please see the details of each parameter by:<br>
@@ -67,6 +68,9 @@ The LeTRS output table for novel subgenomic mRNA in the sequencing data. "leader
 
 **novel_junction_details.tab**<br>
 The LeTRS output table for details of novel subgenomic mRNA in the sequencing data. "peak_leader" and "peak_TRS_start" point to the leader-TRS junctions in novel_junction.tab, "ACGAAC" indicates if there is an ACGAAC sequence in the "TRS_seq" (TRS sequences), "20_leader_seq" refers to the 20 nucleotides before the end of the leader, "AUG_postion" and "first_orf_aa" refer to the first AUG position and translated orf of the sgmRNA, and "known_AUG" indicates if the first AUG position is the same as a known sgmRNA.<br>
+
+**primers_used.tab**<br>
+The most used artic primers in amplification of leader-TRS junctions.<br>
 
 #### 4. Plotting<br>
 There is also a perl script that can plot a diagram for the output of LeTRS.pl.<br>
