@@ -48,7 +48,7 @@ Please see the details of each parameter by:<br>
 (3) To analyse direct RNA Nanopore sequencing data and extract the reads containing the identified leader-TRS junctions in fasta format:<br>
 *perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode nanopore -fq example.fastq.gz -o LeTRS_output*<br>
 
-(4) To analyse direct RNA Nanopore sequencing data with customized leader-TRS junctions and SARS-CoV-2 or other coronavirus genomes as a reference, and extract the reads containing the identified leader-TRS junctions in fasta format for pool 1 of amplicon primers (The instruction of making a reference_folder could be found in "readme.txt" of "making_reference_folder_example" folder):<br>
+(4) To analyse direct RNA Nanopore sequencing data with customized leader-TRS junctions and SARS-CoV-2 or other coronavirus genomes as a reference, and extract the reads containing the identified leader-TRS junctions in fasta format (The instruction of making a reference_folder could be found in "readme.txt" of "making_reference_folder_example" folder):<br>
 *perl LeTRS.pl -t 16 -extractfasta -Rtch cDNA -mode nanopore -fq example.fastq.gz -primer_bed path_to_custom_primer.bed -o LeTRS_output -ref reference_folder*<br>
 
 (5) To analyse paired end Illumina sequencing data and extract the read pairs containing the identified leader-TRS junctions in fasta format for pool 1 and pool 2 of amplicon primers (The ARTIC primer_bed can be found in the "primer_bed" folder):<br>
