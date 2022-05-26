@@ -25,6 +25,7 @@ my @standard_options =("help|h!",
                        "adjTRS=s",
                        "poscutoff=s",
                        "covcutoff=s",
+                       "covcutoffidp=s",
                        "extractfasta!",
                        "TRSLindependent!",
                        "noguide!",
@@ -43,40 +44,41 @@ if ((keys (%options))==0) {
 # If the -help option is set, print the usage and exit
 if ($options{'help'}) {
     print "\nUsage example\:
-  perl LeTRS.pl -t 16 -extractfasta -pool 1 -Rtch cDNA -mode nanopore -fq example.fastq.gz -primer_bed path_to_primer_V3.bed -o LeTRS_output 
+  perl LeTRS.pl -t 16 -extractfasta -pool 0 -Rtch cDNA -mode nanopore -fq example.fastq.gz -primer_bed path_to_primer_V3.bed -o LeTRS_output 
   perl LeTRS.pl -t 16 -extractfasta -Rtch RNA -mode nanopore -fq example.fastq.gz -o LeTRS_output
   perl LeTRS.pl -t 16 -extractfasta -pool 1 -Rtch cDNA -mode nanopore -fq example.fastq.gz -primer_bed path_to_custom_primer.bed -o LeTRS_output -ref reference_folder
   perl LeTRS.pl -t 16 -extractfasta -pool 1 -mode illumina -fq #1.fastq.gz:#2.fastq.gz -primer_bed path_to_primer_V3.bed -o LeTRS_output
   perl LeTRS.pl -t 16 -extractfasta -mode illumina -bam example.bam -o LeTRS_output
 
 Required options:
-  -mode             \"nanopore\" or \"illumina\" of the input fastq file.
-  -Rtch             \"RNA\" (direct RNA) or \"cDNA\" (amplicon cDNA) to indicate the sequencing library for \"nanopore\" mode.
-  -fq               fastq file (the paired reads can be provide as \"#1.fastq.gz:#2.fastq.gz\").
-  -primer_bed       amplicon primer bed file is required for \"nanopore cDNA\" and \"illumina\" modes.
-  -pool INT         amplicon primer pool is required for \"nanopore cDNA\" and \"illumina\" modes, 0 indicates all pools.
+  -mode               \"nanopore\" or \"illumina\" of the input fastq file.
+  -Rtch               \"RNA\" (direct RNA) or \"cDNA\" (amplicon cDNA) to indicate the sequencing library for \"nanopore\" mode.
+  -fq                 fastq file (paired reads can be provide as \"#1.fastq.gz:#2.fastq.gz\").
+  -primer_bed         amplicon primer bed file is required for \"nanopore cDNA\" and \"illumina\" modes.
+  -pool INT           amplicon primer pool is required for \"nanopore cDNA\" and \"illumina\" modes, 0 indicates all pools.
 
 Optional options:
-  -bam              custom bam can also be provided if the \"-fq\" dosen't exist.
-  -ref              custom sars-cov-2 or other coronavirus reference folder.
-  -extractfasta     to extract the reads contain the identified leader-TRS junctions in fasta format.
-  -TRSLindependent  to find the reads with sgmRNAs with non-canonical leaders.
-  -noguide          this option turns off the known leader-TRS guided alignment.
-  -t/-thread        number of threads, 1 by default.
-  -o                output path, \"./\" by default.
-  -adjleader INT    leader junction boundary tolerance, +-10 nts by default.
-  -adjTRS INT       TRS junction boundary tolerance, -20 nts to 1 nt ahead the ATG of knonwn orfs by default.
-  -poscutoff INT    postion of leader end cutoff for the novel leader-TRS identification, 80 by default.
-  -covcutoff INT    coverge cutoff for the novel leader-TRS identification, 5 reads/read pairs by default.
-  -ployALoc INT     The position of the first A in ployA tail on the virus genome, auto detection by default.
+  -bam                custom bam can also be provided if the \"-fq\" dosen't exist.
+  -ref                custom sars-cov-2 or other coronavirus reference folder.
+  -extractfasta       to extract the reads contain the identified leader-TRS junctions in fasta format.
+  -TRSLindependent    to find the reads with sgmRNAs with non-canonical leaders.
+  -noguide            this option turns off the known leader-TRS guided alignment.
+  -t/-thread          number of threads, 1 by default.
+  -o                  output path, \"./\" by default.
+  -adjleader INT      leader junction boundary tolerance, +-10 nts by default.
+  -adjTRS INT         TRS junction boundary tolerance, -20 nts to 1 nt ahead the ATG of knonwn orfs by default.
+  -poscutoff INT      postion of leader end cutoff for the novel leader-TRS identification, 80 by default.
+  -covcutoff INT      coverge cutoff for the novel leader-TRS identification, 5 reads/read pairs by default.
+  -covcutoffidp INT   coverge cutoff for the sgmRNAs with non-canonical leaders, 5 reads/read pairs by default.
+  -ployALoc INT       The position of the first A in ployA tail on the virus genome, auto detection by default.
   
-  -v/-version       Print version information.
-  -h/-help          Print help message.\n\n";
+  -v/-version         Print version information.
+  -h/-help            Print help message.\n\n";
     exit;
 }
 
 if ($options{'version'}) {
-    print "v2.0.1\n";
+    print "v2.1.1\n";
     exit;
 }
 
@@ -187,13 +189,24 @@ if (!exists ($options{'adjorf'})) {
 }
 print "junction site at orf adject number: \-$orfadjectnumber\n";
 
+
 my $cutoff;
 if (!exists ($options{'covcutoff'})) {
-    $cutoff= "10";
+    $cutoff= "5";
 }elsif (exists ($options{'covcutoff'})) {
     $cutoff= $options{'covcutoff'};
 }
 print "novel junction covervage cutoff: $cutoff\n";
+
+my $cutoffidp;
+if (exists ($options{'TRSLindependent'})) {
+    if (!exists ($options{'covcutoffidp'})) {
+        $cutoffidp= "5";
+    }elsif (exists ($options{'covcutoffidp'})) {
+        $cutoffidp= $options{'covcutoffidp'};
+    }
+    print "non-canonical junction covervage cutoff: $cutoff\n";
+}
 
 my $cutoffpos=80;
 if (!exists ($options{'poscutoff'})) {
@@ -254,7 +267,7 @@ if ($options{'mode'} eq "nanopore") {
     }
 }elsif ($options{'mode'} eq "illumina") {
     print "it is illumina mode now\n";
-    if ($chackbam==0 and $chackfa==1) {
+    if ($chackbam==0 and $chackfa==1 and $options{'fq'}=~/\:/) {
         if (exists ($options{'Rtch'})) {
             print "--Rtch is not functional in illumina mode\n";
             exit;
@@ -274,6 +287,27 @@ if ($options{'mode'} eq "nanopore") {
         &getprimerbed;
         &bamparseillumina;
         &getcoverageillumina;
+        &parseresult;
+    }elsif ($chackbam==0 and $chackfa==1 and $options{'fq'}!~/\:/) {
+        if (exists ($options{'Rtch'})) {
+            print "--Rtch is not functional in illumina mode\n";
+            exit;
+        }
+        $options{'Rtch'}=0;
+        if (!exists ($options{'primer_bed'})) {
+            print "please provide a primer bed file\n";
+            exit;
+        }
+        if (!exists ($options{'pool'})) {
+            print "please select primer pool\n";
+            exit;
+        }
+        &mappingillumina;
+        print "looking for the leader-TRS\n";
+        &tabfix;
+        &getprimerbed;
+        &bamparse;
+        &getcoveragecDNA;
         &parseresult;
     }elsif($chackbam==1 and $chackfa==0) {
         if (exists ($options{'primer_bed'})) {
@@ -303,10 +337,10 @@ sub mappingnanopore {
     
     if ($options{'Rtch'} eq "cDNA" and exists($options{'noguide'})) {
         print "minion seq model: cDNA\n";
-        system ("minimap2 -ax splice -t $thread $pathtoreference/genome.fasta $options{'fq'} | samtools view -@ $thread -q 10 -F 2304 -Sb | samtools sort -@ $thread -o $outputpath/$lable\_output/$lable\.sorted.bam");
+        system ("minimap2 -ax splice -t $thread $pathtoreference/genome.fasta $options{'fq'} | samtools view -@ $thread -q 10 -F 2308 -Sb | samtools sort -@ $thread -o $outputpath/$lable\_output/$lable\.sorted.bam");
     }elsif ($options{'Rtch'} eq "cDNA") {
         print "minion seq model: cDNA\n";
-        system ("minimap2 -ax splice --junc-bed $pathtoreference/genome.bed -t $thread $pathtoreference/genome.fasta $options{'fq'} | samtools view -@ $thread -q 10 -F 2304 -Sb | samtools sort -@ $thread -o $outputpath/$lable\_output/$lable\.sorted.bam");
+        system ("minimap2 -ax splice --junc-bed $pathtoreference/genome.bed -t $thread $pathtoreference/genome.fasta $options{'fq'} | samtools view -@ $thread -q 10 -F 2308 -Sb | samtools sort -@ $thread -o $outputpath/$lable\_output/$lable\.sorted.bam");
     }elsif ($options{'Rtch'} eq "RNA" and exists($options{'noguide'})) {
         print "minion seq model: RNA\n";
         system ("minimap2 -ax splice -uf -k14 -t $thread $pathtoreference/genome.fasta $options{'fq'} | samtools view -@ $thread -q 10 -F 2320 -Sb | samtools sort -@ $thread -o $outputpath/$lable\_output/$lable\.sorted.bam");
@@ -326,7 +360,7 @@ sub mappingnanopore {
 sub bamnanopore {
     my $lable="alignment";
     mkdir "$outputpath/$lable\_output";
-    system ("samtools view -@ $thread -b -q 10 -F 2304 $options{'bam'} | samtools sort -@ $thread -o $outputpath/$lable\_output/$lable\.sorted.bam");
+    system ("samtools view -@ $thread -b -q 10 -F 2308 $options{'bam'} | samtools sort -@ $thread -o $outputpath/$lable\_output/$lable\.sorted.bam");
     system ("portcullis prep -t $thread -o $outputpath/$lable\_output/$lable\_portcullis_out $pathtoreference/genome.fasta $outputpath/$lable\_output/$lable\.sorted.bam");
     system ("portcullis junc --intron_gff --exon_gff -t $thread --orientation SE -o $outputpath/$lable\_output/$lable\_portcullis_out $outputpath/$lable\_output/$lable\_portcullis_out");
 }
@@ -335,15 +369,21 @@ sub mappingillumina {
     my $lable="alignment";
     mkdir "$outputpath/$lable\_output";
     
-    my @fasta=split(/\:/, $options{'fq'});
-    if ($#fasta < 1) {
-        print "the \"illumina\" mode only supports paired end reads\n";
-        exit;
+    my @fasta; my $inputread1; my $inputread2;
+    if ($options{'fq'}=~/\:/) {
+        @fasta=split(/\:/, $options{'fq'});
+        print "the \"illumina\" mode is running with paired end reads\n";
+        print "$fasta[0]\n";
+        print "$fasta[1]\n";
+        $inputread1=$fasta[0];
+        $inputread2=$fasta[1];
+    }else{
+        print "the \"illumina\" mode is running with single end reads\n";
+        print "$options{'fq'}\n";
+        $inputread1=$options{'fq'};
     }
     
-    print "$fasta[0]\n";
-    print "$fasta[1]\n";
-    
+
     my $indexfileExist = -e "$pathtoreference/genome.1.ht2";
     if ($indexfileExist) {
         print "the hisat2-build has done\n";
@@ -354,9 +394,17 @@ sub mappingillumina {
     if (exists($options{'noguide'})) {
         system ("hisat2 -p $thread -q -t -x $pathtoreference/genome -1 $fasta[0] -2 $fasta[1] -S $outputpath/$lable\_output/$lable\.sam --summary-file $outputpath/$lable\_output/$lable\.mapping.summary");
     }else{
-        system ("hisat2 -p $thread -q -t -x $pathtoreference/genome --known-splicesite-infile $pathtoreference/genome_splicesites.txt -1 $fasta[0] -2 $fasta[1] -S $outputpath/$lable\_output/$lable\.sam --summary-file $outputpath/$lable\_output/$lable\.mapping.summary");
+        if ($options{'fq'}=~/\:/) {
+            system ("hisat2 -p $thread -q -t -x $pathtoreference/genome --known-splicesite-infile $pathtoreference/genome_splicesites.txt -1 $inputread1 -2 $inputread2 -S $outputpath/$lable\_output/$lable\.sam --summary-file $outputpath/$lable\_output/$lable\.mapping.summary");
+        }else{
+            system ("hisat2 -p $thread -q -t -x $pathtoreference/genome --known-splicesite-infile $pathtoreference/genome_splicesites.txt -U $inputread1 -S $outputpath/$lable\_output/$lable\.sam --summary-file $outputpath/$lable\_output/$lable\.mapping.summary");
+        }
     }
-    system ("samtools view -@ $thread -q 10 -F 2316 -Sb $outputpath/$lable\_output/$lable\.sam | samtools sort -@ $thread -o $outputpath/$lable\_output/$lable\.sorted.bam");
+    if ($options{'fq'}=~/\:/) {
+        system ("samtools view -@ $thread -q 10 -F 2316 -Sb $outputpath/$lable\_output/$lable\.sam | samtools sort -@ $thread -o $outputpath/$lable\_output/$lable\.sorted.bam");
+    }else{
+        system ("samtools view -@ $thread -q 10 -F 2308 -Sb $outputpath/$lable\_output/$lable\.sam | samtools sort -@ $thread -o $outputpath/$lable\_output/$lable\.sorted.bam");
+    }
     system ("samtools index $outputpath/$lable\_output/$lable\.sorted.bam");
     system ("portcullis prep -t $thread -o $outputpath/$lable\_output/$lable\_portcullis_out $pathtoreference/genome.fasta  $outputpath/$lable\_output/$lable\.sorted.bam");
     system ("portcullis junc --intron_gff --exon_gff -t $thread -o $outputpath/$lable\_output/$lable\_portcullis_out $outputpath/$lable\_output/$lable\_portcullis_out");
@@ -365,7 +413,7 @@ sub mappingillumina {
 sub bamillumina {
     my $lable="alignment";
     mkdir "$outputpath/$lable\_output";
-    system ("samtools view -@ $thread -b -q 10 -F 2304 $options{'bam'} | samtools sort -@ $thread -o $outputpath/$lable\_output/$lable\.sorted.bam");
+    system ("samtools view -@ $thread -b -q 10 -F 2308 $options{'bam'} | samtools sort -@ $thread -o $outputpath/$lable\_output/$lable\.sorted.bam");
     system ("portcullis prep -t $thread -o $outputpath/$lable\_output/$lable\_portcullis_out $pathtoreference/genome.fasta $outputpath/$lable\_output/$lable\.sorted.bam");
     system ("portcullis junc --intron_gff --exon_gff -t $thread -o $outputpath/$lable\_output/$lable\_portcullis_out $outputpath/$lable\_output/$lable\_portcullis_out");
 }
@@ -793,8 +841,8 @@ sub parseresult {
                 $hashtab{$eachtabs[0]}="$eachtabs[0]\t$eachtabs[4]\t$eachtabs[5]\t$eachtabs[20]";
                 push (@allindexcollection,"$eachtabs[0]");
             }
-            if ($options{'TRSLindependent'}) {
-                if ($eachtabs[4]>=$cutoffpos && $eachtabs[20]>$cutoff) {
+            if (exists $options{'TRSLindependent'}) {
+                if ($eachtabs[4]>=$cutoffpos && $eachtabs[20]>$cutoffidp) {
                     push (@allindexcollectionextra,"$eachtabs[0]");
                     $hashtabnoncanonical{$eachtabs[0]}="$eachtabs[0]\t$eachtabs[4]\t$eachtabs[5]\t$eachtabs[20]";
                 }
@@ -812,7 +860,7 @@ sub parseresult {
         chomp;
         my @eachassps=split(/\t/);
         
-        if ($options{'mode'} eq "illumina" && !exists $options{'bam'}) {
+        if ($options{'mode'} eq "illumina" && !exists $options{'bam'} && $options{'fq'}=~/\:/) {
             if ($eachassps[-1] eq "yes") {
                 my @eachleftright1=($eachassps[0],$eachassps[2],$eachassps[5],$eachassps[9],$eachassps[11],$eachassps[14]);
                 push (@{$hashasspleftright1{"$eachassps[3]\t$eachassps[4]"}}, [@eachleftright1]);
@@ -898,21 +946,50 @@ sub parseresult {
                             if ($eachprimerbed[1] < $eachtabs[4] && $eachprimerbed[3]=~/_LEFT/) {
                                 my @leftprimerids=grep(grep($_>=$eachprimerbed[1] && $_<=$eachprimerbed[2]-10, @$_[1]), @{$hashasspleftright{"$eachtabs[4]\t$eachtabs[5]"}});
                                 for (my $n=0; $n<$#leftprimerids+1; $n++) {
-                                    push (@clusterleftprimerids,"$leftprimerids[$n][0]\_$eachprimerbed[4]");
+                                    push (@clusterleftprimerids,"$leftprimerids[$n][0]");
                                 }
                             }
                                                         
                             if ($eachprimerbed[2] > $eachtabs[5] && $eachprimerbed[3]=~/_RIGHT/) {
                                 my @rightprimerids=grep(grep($_>=$eachprimerbed[1]+10 && $_<=$eachprimerbed[2], @$_[2]), @{$hashasspleftright{"$eachtabs[4]\t$eachtabs[5]"}});
                                 for (my $n=0; $n<$#rightprimerids+1; $n++) {
-                                    push (@clusterrightprimerids,"$rightprimerids[$n][0]\_$eachprimerbed[4]");
+                                    push (@clusterrightprimerids,"$rightprimerids[$n][0]");
                                 }
                             }
                         }
                         close PRIMERBED;
                     }
                     
-                    if ($options{'mode'} eq "illumina" && !exists $options{'bam'}) {
+                    if ($options{'mode'} eq "illumina" && !exists $options{'bam'} && $options{'fq'}!~/\:/) {
+                        #my $countployAcounts1=grep($_>=$polyapostion, @{$hashassp{"$eachtabs[4]\t$eachtabs[5]"}});
+                        #push (@clusterployAcounts1,$countployAcounts1); # to get ployA >= 1 by the sart and end postions in the cluster.
+                        #my $countployAcounts5=grep($_>=$polyapostion5, @{$hashassp{"$eachtabs[4]\t$eachtabs[5]"}});
+                        #push (@clusterployAcounts5,$countployAcounts5); # to get ployA >=5 by the sart and end postions in the cluster.
+                        #my $clusterATGsiteid=grep($_>$adjectorfup+1, @{$hashassp{"$eachtabs[4]\t$eachtabs[5]"}});
+                        #push (@clusterATGsite,$clusterATGsiteid);
+                        
+                        open(PRIMERBED, "$outputpath/alignment_output/selected_primer_pool.bed") or die "can't find primer bed file";
+                        while (<PRIMERBED>) {
+                            chomp;
+                            my @eachprimerbed=split(/\t/);
+                            if ($eachprimerbed[1] < $eachtabs[4] && $eachprimerbed[3]=~/_LEFT/) {
+                                my @leftprimerids=grep(grep($_>=$eachprimerbed[1] && $_<=$eachprimerbed[2]-10, @$_[1]), @{$hashasspleftright{"$eachtabs[4]\t$eachtabs[5]"}});
+                                for (my $n=0; $n<$#leftprimerids+1; $n++) {
+                                    push (@clusterleftprimerids,"$leftprimerids[$n][0]");
+                                }
+                            }
+                                                        
+                            if ($eachprimerbed[2] > $eachtabs[5] && $eachprimerbed[3]=~/_RIGHT/) {
+                                my @rightprimerids=grep(grep($_>=$eachprimerbed[1]+10 && $_<=$eachprimerbed[2], @$_[2]), @{$hashasspleftright{"$eachtabs[4]\t$eachtabs[5]"}});
+                                for (my $n=0; $n<$#rightprimerids+1; $n++) {
+                                    push (@clusterrightprimerids,"$rightprimerids[$n][0]");
+                                }
+                            }
+                        }
+                        close PRIMERBED;
+                    }
+                                        
+                    if ($options{'mode'} eq "illumina" && !exists $options{'bam'} && $options{'fq'}=~/\:/) {
                         #my $clusterATGsiteid=grep($_>$adjectorfup+1, @{$hashassp{"$eachtabs[4]\t$eachtabs[5]"}});
                         #push (@clusterATGsite,$clusterATGsiteid);
                         if (defined $hashillumina{"$eachtabs[4]\t$eachtabs[5]"}) {
@@ -927,10 +1004,10 @@ sub parseresult {
                                 my @leftprimerids1=grep(grep($_>=$eachprimerbed[1] && $_<=$eachprimerbed[2]-10, @$_[1]), @{$hashasspleftright1{"$eachtabs[4]\t$eachtabs[5]"}});
                                 my @leftprimerids2=grep(grep($_>=$eachprimerbed[1] && $_<=$eachprimerbed[2]-10, @$_[1]), @{$hashasspleftright2{"$eachtabs[4]\t$eachtabs[5]"}});
                                 for (my $n=0; $n<$#leftprimerids1+1; $n++) {
-                                    push (@clusterleftprimerids,"$leftprimerids1[$n][0]\_$leftprimerids1[$n][3]\_$eachprimerbed[4]");
+                                    push (@clusterleftprimerids,"$leftprimerids1[$n][0]\_$leftprimerids1[$n][3]");
                                 }
                                 for (my $n=0; $n<$#leftprimerids2+1; $n++) {
-                                    push (@clusterleftprimerids,"$leftprimerids2[$n][0]\_$leftprimerids2[$n][3]\_$eachprimerbed[4]");
+                                    push (@clusterleftprimerids,"$leftprimerids2[$n][0]\_$leftprimerids2[$n][3]");
                                 }
                             }
                                                         
@@ -938,10 +1015,10 @@ sub parseresult {
                                 my @rightprimerids1=grep(grep($_>=$eachprimerbed[1]+10 && $_<=$eachprimerbed[2], @$_[5]), @{$hashasspleftright1{"$eachtabs[4]\t$eachtabs[5]"}});
                                 my @rightprimerids2=grep(grep($_>=$eachprimerbed[1]+10 && $_<=$eachprimerbed[2], @$_[5]), @{$hashasspleftright2{"$eachtabs[4]\t$eachtabs[5]"}});
                                 for (my $n=0; $n<$#rightprimerids1+1; $n++) {
-                                    push (@clusterrightprimerids,"$rightprimerids1[$n][0]\_$rightprimerids1[$n][3]\_$eachprimerbed[4]");
+                                    push (@clusterrightprimerids,"$rightprimerids1[$n][0]\_$rightprimerids1[$n][3]");
                                 }
                                 for (my $n=0; $n<$#rightprimerids2+1; $n++) {
-                                    push (@clusterrightprimerids,"$rightprimerids2[$n][0]\_$rightprimerids2[$n][3]\_$eachprimerbed[4]");
+                                    push (@clusterrightprimerids,"$rightprimerids2[$n][0]\_$rightprimerids2[$n][3]");
                                 }
                             }
                         }
@@ -1024,14 +1101,14 @@ sub parseresult {
                     if ($eachprimerbed[1] < $eachtabsagain[1] && $eachprimerbed[3]=~/_LEFT/) {
                         my @leftprimerids=grep(grep($_>=$eachprimerbed[1] && $_<=$eachprimerbed[2]-10, @$_[1]), @{$hashasspleftright{"$eachtabsagain[1]\t$eachtabsagain[2]"}});
                         for (my $n=0; $n<$#leftprimerids+1; $n++) {
-                            push (@clusterleftprimeridspeak,"$leftprimerids[$n][0]\_$eachprimerbed[4]");
+                            push (@clusterleftprimeridspeak,"$leftprimerids[$n][0]");
                         }
                     }
            
                     if ($eachprimerbed[2] > $eachtabsagain[2] && $eachprimerbed[3]=~/_RIGHT/) {   
                         my @rightprimerids=grep(grep($_>=$eachprimerbed[1]+10 && $_<=$eachprimerbed[2], @$_[2]), @{$hashasspleftright{"$eachtabsagain[1]\t$eachtabsagain[2]"}});
                         for (my $n=0; $n<$#rightprimerids+1; $n++) {
-                            push (@clusterrightprimeridspeak,"$rightprimerids[$n][0]\_$eachprimerbed[4]");
+                            push (@clusterrightprimeridspeak,"$rightprimerids[$n][0]");
                         }
                     }
                 }
@@ -1065,7 +1142,76 @@ sub parseresult {
                 #print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t$eachtabsagain[1]\t$junctionsites[2]\t$eachtabsagain[2]\t$eachtabsagain[3]\($sumclusterleftprimercountspeak,$sumclusterrightprimercountspeak,$clusterleftrightprimeridsintersectioncountpeak,$countployAcounts1,$countployAcounts5\)\t$covratiopeack\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covcountployAcounts1,$covcountployAcounts5\)\t$sumclustercounts\($sumclusterleftprimercounts,$sumclusterrightprimercounts,$clusterleftrightprimeridsintersectioncount,$sumclusterployAcounts1,$sumclusterployAcounts5\)\t$covratiocluster\($covsumclusterleftprimercounts,$covsumclusterrightprimercounts,$covclusterleftrightprimeridsintersectioncount,$covsumclusterployAcounts1,$covsumclusterployAcounts5\)\n";
                 print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t$eachtabsagain[1]\t$junctionsites[2]\t$eachtabsagain[2]\t$eachtabsagain[3]\($sumclusterleftprimeronlycountspeak,$sumclusterrightprimeronlycountspeak,$clusterleftrightprimeridsintersectioncountpeak,$clusterleftrightprimeridsatleastonecountpeak\)\t$covratiopeack\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covclusterleftrightprimeridsatleastonecountpeak\)\t$sumclustercounts\($sumclusterleftprimeronlycounts,$sumclusterrightprimeronlycounts,$clusterleftrightprimeridsintersectioncount,$clusterleftrightprimeridsatleastonecount\)\t$covratiocluster\($covsumclusterleftprimercounts,$covsumclusterrightprimercounts,$covclusterleftrightprimeridsintersectioncount,$covclusterleftrightprimeridsatleastonecount\)\n";
             }
-        }elsif ($options{'mode'} eq "illumina" && !exists $options{'bam'}) {
+        }elsif ($options{'mode'} eq "illumina" && !exists $options{'bam'} && $options{'fq'}!~/\:/) {
+            if ($#clusters == -1) {
+                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t0\t$junctionsites[2]\t0\t0\t0\t0\t0\n";
+            }else{
+                my @eachtabsagain=split(/\t/,$hashtabr{$clusters[-1]});
+                my $covratiopeack=sprintf("%.2f", $eachtabsagain[3]/$totalmappedread*1000000);
+                my $covratiocluster=sprintf("%.2f", $sumclustercounts/$totalmappedread*1000000);
+                #my $covsumclusterATGsite=sprintf("%.2f", $sumclusterATGsite/$totalmappedread*1000000);
+                #my $covsumclusterployAcounts1=sprintf("%.2f", $sumclusterployAcounts1/$totalmappedread*1000000);
+                #my $covsumclusterployAcounts5=sprintf("%.2f", $sumclusterployAcounts5/$totalmappedread*1000000);
+                
+                #my $countATGsiteid=grep($_>$adjectorfup+1, @{$hashassp{"$eachtabsagain[1]\t$eachtabsagain[2]"}});
+                #my $countployAcounts1=grep($_>=$polyapostion, @{$hashassp{"$eachtabsagain[1]\t$eachtabsagain[2]"}});
+                #my $countployAcounts5=grep($_>=$polyapostion5, @{$hashassp{"$eachtabsagain[1]\t$eachtabsagain[2]"}});
+                #my $covcountATGsiteid=sprintf("%.2f", $countATGsiteid/$totalmappedread*1000000);
+                #my $covcountployAcounts1=sprintf("%.2f", $countployAcounts1/$totalmappedread*1000000);
+                #my $covcountployAcounts5=sprintf("%.2f", $countployAcounts5/$totalmappedread*1000000);
+                
+                my @clusterleftprimeridspeak=();
+                my @clusterrightprimeridspeak=();
+                
+                open(PRIMERBED, "$outputpath/alignment_output/selected_primer_pool.bed") or die "can't find primer bed file";
+                while (<PRIMERBED>) {
+                    chomp;
+                    my @eachprimerbed=split(/\t/);
+                    if ($eachprimerbed[1] < $eachtabsagain[1] && $eachprimerbed[3]=~/_LEFT/) {
+                        my @leftprimerids=grep(grep($_>=$eachprimerbed[1] && $_<=$eachprimerbed[2]-10, @$_[1]), @{$hashasspleftright{"$eachtabsagain[1]\t$eachtabsagain[2]"}});
+                        for (my $n=0; $n<$#leftprimerids+1; $n++) {
+                            push (@clusterleftprimeridspeak,"$leftprimerids[$n][0]");
+                        }
+                    }
+           
+                    if ($eachprimerbed[2] > $eachtabsagain[2] && $eachprimerbed[3]=~/_RIGHT/) {   
+                        my @rightprimerids=grep(grep($_>=$eachprimerbed[1]+10 && $_<=$eachprimerbed[2], @$_[2]), @{$hashasspleftright{"$eachtabsagain[1]\t$eachtabsagain[2]"}});
+                        for (my $n=0; $n<$#rightprimerids+1; $n++) {
+                            push (@clusterrightprimeridspeak,"$rightprimerids[$n][0]");
+                        }
+                    }
+                }
+                close PRIMERBED;
+                
+                my @sumclusterleftprimercountspeak=uniq(@clusterleftprimeridspeak);
+                my $sumclusterleftprimercountspeak=$#sumclusterleftprimercountspeak+1;
+                my @sumclusterrightprimercountspeak=uniq(@clusterrightprimeridspeak);
+                my $sumclusterrightprimercountspeak=$#sumclusterrightprimercountspeak+1;
+                
+                my $clusterleftrightprimeridspeak = List::Compare->new(\@clusterleftprimeridspeak, \@clusterrightprimeridspeak);
+                my @clusterleftrightprimeridsintersectionpeak = $clusterleftrightprimeridspeak->get_intersection;
+                my $clusterleftrightprimeridsintersectioncountpeak=$#clusterleftrightprimeridsintersectionpeak+1;
+                
+                my $sumclusterleftprimeronlycountspeak=$sumclusterleftprimercountspeak-$clusterleftrightprimeridsintersectioncountpeak;
+                my $sumclusterrightprimeronlycountspeak=$sumclusterrightprimercountspeak-$clusterleftrightprimeridsintersectioncountpeak;
+                my $clusterleftrightprimeridsatleastonecountpeak=$sumclusterleftprimercountspeak-$clusterleftrightprimeridsintersectioncountpeak+$sumclusterrightprimercountspeak;
+
+                my $covsumclusterleftprimercountspeak=sprintf("%.2f", $sumclusterleftprimeronlycountspeak/$numleftprimersonly*1000000);
+                my $covsumclusterrightprimercountspeak=sprintf("%.2f", $sumclusterrightprimeronlycountspeak/$numrightprimersonly*1000000);
+                my $covclusterleftrightprimeridsintersectioncountpeak=sprintf("%.2f", $clusterleftrightprimeridsintersectioncountpeak/$numbothprimers*1000000);
+                my $covclusterleftrightprimeridsatleastonecountpeak=sprintf("%.2f", $clusterleftrightprimeridsatleastonecountpeak/$numatleastprimers*1000000);
+                
+                my $covsumclusterleftprimercounts=sprintf("%.2f", $sumclusterleftprimeronlycounts/$numleftprimersonly*1000000);
+                my $covsumclusterrightprimercounts=sprintf("%.2f", $sumclusterrightprimeronlycounts/$numrightprimersonly*1000000);
+                my $covclusterleftrightprimeridsintersectioncount=sprintf("%.2f", $clusterleftrightprimeridsintersectioncount/$numbothprimers*1000000);
+                my $covclusterleftrightprimeridsatleastonecount=sprintf("%.2f", $clusterleftrightprimeridsatleastonecount/$numatleastprimers*1000000);
+                
+                #my $testlength=$#{$hashassp{"$eachtabsagain[1]\t$eachtabsagain[2]"}}+1;
+                &extractdetails ($junctionsites[0],$eachtabsagain[1],$eachtabsagain[2]);
+                #print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t$eachtabsagain[1]\t$junctionsites[2]\t$eachtabsagain[2]\t$eachtabsagain[3]\($sumclusterleftprimercountspeak,$sumclusterrightprimercountspeak,$clusterleftrightprimeridsintersectioncountpeak,$countployAcounts1,$countployAcounts5\)\t$covratiopeack\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covcountployAcounts1,$covcountployAcounts5\)\t$sumclustercounts\($sumclusterleftprimercounts,$sumclusterrightprimercounts,$clusterleftrightprimeridsintersectioncount,$sumclusterployAcounts1,$sumclusterployAcounts5\)\t$covratiocluster\($covsumclusterleftprimercounts,$covsumclusterrightprimercounts,$covclusterleftrightprimeridsintersectioncount,$covsumclusterployAcounts1,$covsumclusterployAcounts5\)\n";
+                print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t$eachtabsagain[1]\t$junctionsites[2]\t$eachtabsagain[2]\t$eachtabsagain[3]\($sumclusterleftprimeronlycountspeak,$sumclusterrightprimeronlycountspeak,$clusterleftrightprimeridsintersectioncountpeak,$clusterleftrightprimeridsatleastonecountpeak\)\t$covratiopeack\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covclusterleftrightprimeridsatleastonecountpeak\)\t$sumclustercounts\($sumclusterleftprimeronlycounts,$sumclusterrightprimeronlycounts,$clusterleftrightprimeridsintersectioncount,$clusterleftrightprimeridsatleastonecount\)\t$covratiocluster\($covsumclusterleftprimercounts,$covsumclusterrightprimercounts,$covclusterleftrightprimeridsintersectioncount,$covclusterleftrightprimeridsatleastonecount\)\n";
+            }
+        }elsif ($options{'mode'} eq "illumina" && !exists $options{'bam'} && $options{'fq'}=~/\:/) {
             if ($#clusters == -1) {
                 print KNOWNJUNCATIONS "$junctionsites[0]\t$junctionsites[1]\t0\t$junctionsites[2]\t0\t0\t0\t0\t0\n";
             }else{
@@ -1082,10 +1228,10 @@ sub parseresult {
                         my @leftprimerids1=grep(grep($_>=$eachprimerbed[1] && $_<=$eachprimerbed[2]-10, @$_[1]), @{$hashasspleftright1{"$eachtabsagain[1]\t$eachtabsagain[2]"}});
                         my @leftprimerids2=grep(grep($_>=$eachprimerbed[1] && $_<=$eachprimerbed[2]-10, @$_[1]), @{$hashasspleftright2{"$eachtabsagain[1]\t$eachtabsagain[2]"}});
                         for (my $n=0; $n<$#leftprimerids1+1; $n++) {
-                            push (@clusterleftprimeridspeak,"$leftprimerids1[$n][0]\_$leftprimerids1[$n][3]\_$eachprimerbed[4]");
+                            push (@clusterleftprimeridspeak,"$leftprimerids1[$n][0]\_$leftprimerids1[$n][3]");
                         }
                         for (my $n=0; $n<$#leftprimerids2+1; $n++) {
-                            push (@clusterleftprimeridspeak,"$leftprimerids2[$n][0]\_$leftprimerids2[$n][3]\_$eachprimerbed[4]");
+                            push (@clusterleftprimeridspeak,"$leftprimerids2[$n][0]\_$leftprimerids2[$n][3]");
                         }
                     }
                                                         
@@ -1093,10 +1239,10 @@ sub parseresult {
                         my @rightprimerids1=grep(grep($_>=$eachprimerbed[1]+10 && $_<=$eachprimerbed[2], @$_[5]), @{$hashasspleftright1{"$eachtabsagain[1]\t$eachtabsagain[2]"}});
                         my @rightprimerids2=grep(grep($_>=$eachprimerbed[1]+10 && $_<=$eachprimerbed[2], @$_[5]), @{$hashasspleftright2{"$eachtabsagain[1]\t$eachtabsagain[2]"}});
                         for (my $n=0; $n<$#rightprimerids1+1; $n++) {
-                            push (@clusterrightprimeridspeak,"$rightprimerids1[$n][0]\_$rightprimerids1[$n][3]\_$eachprimerbed[4]");
+                            push (@clusterrightprimeridspeak,"$rightprimerids1[$n][0]\_$rightprimerids1[$n][3]");
                         }
                         for (my $n=0; $n<$#rightprimerids2+1; $n++) {
-                            push (@clusterrightprimeridspeak,"$rightprimerids2[$n][0]\_$rightprimerids2[$n][3]\_$eachprimerbed[4]");
+                            push (@clusterrightprimeridspeak,"$rightprimerids2[$n][0]\_$rightprimerids2[$n][3]");
                         }
                     }
                 }
@@ -1246,7 +1392,67 @@ sub parseresult {
             #print NOVEL "$n\t$eachnvelintable[1]\t$eachnvelintable[2]\t$eachnvelintable[3]\($sumclusterleftprimercountspeak,$sumclusterrightprimercountspeak,$clusterleftrightprimeridsintersectioncountpeak,$countployAcounts1novel,$countployAcounts5novel\)\t$covnoveluniqe\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covcountployAcounts1novel,$covcountployAcounts5novel\)\n";
             print NOVEL "$n\t$eachnvelintable[1]\t$eachnvelintable[2]\t$eachnvelintable[3]\($sumclusterleftprimeronlycountspeak,$sumclusterrightprimeronlycountspeak,$clusterleftrightprimeridsintersectioncountpeak,$clusterleftrightprimeridsatleastonecountpeak\)\t$covnoveluniqe\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covclusterleftrightprimeridsatleastonecountpeak\)\n";
         }
-    }elsif ($options{'mode'} eq "illumina" && !exists $options{'bam'}) {
+    }elsif ($options{'mode'} eq "illumina" && !exists $options{'bam'} && $options{'fq'}!~/\:/) {
+        my $n=0;
+        foreach my $indexnovelcollection(@indexnovelcollections) {
+            $n++;
+            my @eachnvelintable=split(/\t/,"$hashtab{$indexnovelcollection}");
+            #my $countployAcounts1novel=grep($_>=$polyapostion, @{$hashassp{"$eachnvelintable[1]\t$eachnvelintable[2]"}});
+            #my $countployAcounts5novel=grep($_>=$polyapostion5, @{$hashassp{"$eachnvelintable[1]\t$eachnvelintable[2]"}});
+            #my $countATGsiteid=grep($_>$atgporstionnovel+1, @{$hashassp{"$eachnvelintable[1]\t$eachnvelintable[2]"}});
+            my $covnoveluniqe=sprintf("%.2f", $eachnvelintable[3]/$totalmappedread*1000000);
+            #my $covcountployAcounts1novel=sprintf("%.2f", $countployAcounts1novel/$totalmappedread*1000000);
+            #my $covcountployAcounts5novel=sprintf("%.2f", $countployAcounts5novel/$totalmappedread*1000000);
+            #my $covcountATGsiteid=sprintf("%.2f", $countATGsiteid/$totalmappedread*1000000);
+            
+            my @clusterleftprimeridspeak=();
+            my @clusterrightprimeridspeak=();
+            open(PRIMERBED, "$outputpath/alignment_output/selected_primer_pool.bed") or die "can't find primer bed file";
+            while (<PRIMERBED>) {
+                chomp;
+                my @eachprimerbed=split(/\t/);
+                if ($eachprimerbed[1] < $eachnvelintable[1] && $eachprimerbed[3]=~/_LEFT/) {
+                    my @leftprimerids=grep(grep($_>=$eachprimerbed[1] && $_<=$eachprimerbed[2]-10, @$_[1]), @{$hashasspleftright{"$eachnvelintable[1]\t$eachnvelintable[2]"}});
+                    for (my $n=0; $n<$#leftprimerids+1; $n++) {
+                        push (@clusterleftprimeridspeak,"$leftprimerids[$n][0]");
+                    }
+                }
+                                
+                if ($eachprimerbed[2] > $eachnvelintable[2] && $eachprimerbed[3]=~/_RIGHT/) {     
+                    my @rightprimerids=grep(grep($_>=$eachprimerbed[1]+10 && $_<=$eachprimerbed[2], @$_[2]), @{$hashasspleftright{"$eachnvelintable[1]\t$eachnvelintable[2]"}});
+                    for (my $n=0; $n<$#rightprimerids+1; $n++) {
+                        push (@clusterrightprimeridspeak,"$rightprimerids[$n][0]");
+                    }
+                }
+            }
+            close PRIMERBED;
+
+            my @sumclusterleftprimercountspeak=uniq(@clusterleftprimeridspeak);
+            my $sumclusterleftprimercountspeak=$#sumclusterleftprimercountspeak+1;
+            my @sumclusterrightprimercountspeak=uniq(@clusterrightprimeridspeak);
+            my $sumclusterrightprimercountspeak=$#sumclusterrightprimercountspeak+1;
+                
+            my $clusterleftrightprimeridspeak = List::Compare->new(\@clusterleftprimeridspeak, \@clusterrightprimeridspeak);
+            my @clusterleftrightprimeridsintersectionpeak = $clusterleftrightprimeridspeak->get_intersection;
+            my $clusterleftrightprimeridsintersectioncountpeak=$#clusterleftrightprimeridsintersectionpeak+1;
+            
+            my $sumclusterleftprimeronlycountspeak=$sumclusterleftprimercountspeak-$clusterleftrightprimeridsintersectioncountpeak;
+            my $sumclusterrightprimeronlycountspeak=$sumclusterrightprimercountspeak-$clusterleftrightprimeridsintersectioncountpeak;
+            my $clusterleftrightprimeridsatleastonecountpeak=$sumclusterleftprimercountspeak-$clusterleftrightprimeridsintersectioncountpeak+$sumclusterrightprimercountspeak;
+                
+            my $covsumclusterleftprimercountspeak=sprintf("%.2f", $sumclusterleftprimeronlycountspeak/$numleftprimersonly*1000000);
+            my $covsumclusterrightprimercountspeak=sprintf("%.2f", $sumclusterrightprimeronlycountspeak/$numrightprimersonly*1000000);
+            my $covclusterleftrightprimeridsintersectioncountpeak=sprintf("%.2f", $clusterleftrightprimeridsintersectioncountpeak/$numbothprimers*1000000);
+            my $covclusterleftrightprimeridsatleastonecountpeak=sprintf("%.2f", $clusterleftrightprimeridsatleastonecountpeak/$numatleastprimers*1000000);
+                
+            
+            #my $testlength=$#{$hashassp{"$eachnvelintable[1]\t$eachnvelintable[2]"}}+1;
+            
+            &extractdetailsnovel($n,$eachnvelintable[1],$eachnvelintable[2]);
+            #print NOVEL "$n\t$eachnvelintable[1]\t$eachnvelintable[2]\t$eachnvelintable[3]\($sumclusterleftprimercountspeak,$sumclusterrightprimercountspeak,$clusterleftrightprimeridsintersectioncountpeak,$countployAcounts1novel,$countployAcounts5novel\)\t$covnoveluniqe\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covcountployAcounts1novel,$covcountployAcounts5novel\)\n";
+            print NOVEL "$n\t$eachnvelintable[1]\t$eachnvelintable[2]\t$eachnvelintable[3]\($sumclusterleftprimeronlycountspeak,$sumclusterrightprimeronlycountspeak,$clusterleftrightprimeridsintersectioncountpeak,$clusterleftrightprimeridsatleastonecountpeak\)\t$covnoveluniqe\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covclusterleftrightprimeridsatleastonecountpeak\)\n";
+        }
+    }elsif ($options{'mode'} eq "illumina" && !exists $options{'bam'} && $options{'fq'}=~/\:/) {
         my $n=0; my $nr=0;
         foreach my $indexnovelcollection(@indexnovelcollections) {
             $n++;
@@ -1366,7 +1572,22 @@ sub parseresult {
         print NOVEL "Normalized count with both primes in $poollable=(Read count with both primers in $poollable/Total number of read with both primer in $poollable mapped on reference genome)*1000000\.\n";
         print NOVEL "Normalized count with at least a primer in $poollable=(Read count with at a least primer in $poollable/Total number of read at a primer in $poollable mapped on reference genome)*1000000\.\n";
         print NOVEL "Total number of read in both pools mapped on reference genome is $totalmappedread, total number of read with only forward primer in $poollable mapped on reference genome is $numleftprimersonly, total number of read with only reverse primer in $poollable mapped on reference genome is $numrightprimersonly, total number of read with both primer in $poollable mapped on reference genome is $numbothprimers, and total number of read at a primer in $poollable mapped on reference genome is $numatleastprimers,excluding the mapped reads not primary alignment and supplementary alignment\.\n";
-    }elsif ($options{'mode'} eq "illumina" && !exists $options{'bam'}) {
+    }elsif ($options{'mode'} eq "illumina" && !exists $options{'bam'} && $options{'fq'}!~/\:/) {
+        print KNOWNJUNCATIONS "The number out of the bracket is all reads with this fusion site, and the numbers in the bracket are (reads with only forward primer in $poollable, reads with only reverse primer in $poollable, reads with both primers in $poollable, reads with at least a primer in $poollable)\.\n";
+        print KNOWNJUNCATIONS "Normalized count=(Read count/Total number of read in both pools mapped on reference genome)*1000000\.\n";
+        print KNOWNJUNCATIONS "Normalized count with only forward primer in $poollable=(Read count with only forward primer in $poollable/Total number of read with only forward primer in $poollable mapped on reference genome)*1000000\.\n";
+        print KNOWNJUNCATIONS "Normalized count with only reverse primer in $poollable=(Read count with only reverse primer in $poollable/Total number of read with only reverse primer in $poollable mapped on reference genome)*1000000\.\n";
+        print KNOWNJUNCATIONS "Normalized count with both primes in $poollable=(Read count with both primers in $poollable/Total number of read with both primer in $poollable mapped on reference genome)*1000000\.\n";
+        print KNOWNJUNCATIONS "Normalized count with at least a primer in $poollable=(Read count with at a least primer in $poollable/Total number of read at a primer in $poollable mapped on reference genome)*1000000\.\n";
+        print KNOWNJUNCATIONS "Total number of read in both pools mapped on reference genome is $totalmappedread, total number of read with only forward primer in $poollable mapped on reference genome is $numleftprimersonly, total number of read with only reverse primer in $poollable mapped on reference genome is $numrightprimersonly, total number of read with both primer in $poollable mapped on reference genome is $numbothprimers, and total number of read at a primer in $poollable mapped on reference genome is $numatleastprimers,excluding the mapped reads not primary alignment and supplementary alignment\.\n";
+        print NOVEL "The number out of the bracket is all reads with this fusion site, and the numbers in the bracket are (reads with only forward primer in $poollable, reads with only reverse primer in $poollable, reads with both primers, in $poollable reads with at least a primer in $poollable)\.\n";
+        print NOVEL "Normalized count=(Read count/Total number of read mapped on reference genome)*1000000\.\n";
+        print NOVEL "Normalized count with only forward primer in $poollable=(Read count with only forward primer in $poollable/Total number of read with only forward primer in $poollable mapped on reference genome)*1000000\.\n";
+        print NOVEL "Normalized count with only reverse primer in $poollable=(Read count with only reverse primer in $poollable/Total number of read with only reverse primer in $poollable mapped on reference genome)*1000000\.\n";
+        print NOVEL "Normalized count with both primes in $poollable=(Read count with both primers in $poollable/Total number of read with both primer in $poollable mapped on reference genome)*1000000\.\n";
+        print NOVEL "Normalized count with at least a primer in $poollable=(Read count with at a least primer in $poollable/Total number of read at a primer in $poollable mapped on reference genome)*1000000\.\n";
+        print NOVEL "Total number of read in both pools mapped on reference genome is $totalmappedread, total number of read with only forward primer in $poollable mapped on reference genome is $numleftprimersonly, total number of read with only reverse primer in $poollable mapped on reference genome is $numrightprimersonly, total number of read with both primer in $poollable mapped on reference genome is $numbothprimers, and total number of read at a primer in $poollable mapped on reference genome is $numatleastprimers,excluding the mapped reads not primary alignment and supplementary alignment\.\n";
+    }elsif ($options{'mode'} eq "illumina" && !exists $options{'bam'} && $options{'fq'}=~/\:/) {
         my $mappedcoveragenew=sprintf("%.0f",$totalmappedread/2);
         print KNOWNJUNCATIONS "The number out of the bracket is all read pairs with this fusion site, and the numbers in the bracket are (read pairs with only forward primer in $poollable, read pairs with only reverse primer in $poollable, read pairs with both primers in $poollable, read pairs with least a primer in $poollable))\.\n";
         print KNOWNJUNCATIONS "Normalized count=(Read pair count/Total number of read pair mapped on reference genome)*1000000\.\n";
@@ -1389,7 +1610,7 @@ sub parseresult {
     close NOVEL; close KNOWNJUNCATIONS;
     close KNOWNJUNCATIONSDETAILS; close NOVELDETAILS;
     
-    if ($options{'TRSLindependent'}) {
+    if (exists $options{'TRSLindependent'}) {
         open (NOVEL, ">$outputpath/results/TRS_L_independent_junction.tab");
         print NOVEL "fusion\tfusion_satrt\tfusion_end\tnb_count\tnormalized_count\n";
         my $indexnovel = List::Compare->new(\@allindexcollection, \@allindexcollectionextra);
@@ -1459,7 +1680,57 @@ sub parseresult {
                 #&extractdetailsind($n,$eachnvelintable[1],$eachnvelintable[2]);
                 print NOVEL "$n\t$eachnvelintable[1]\t$eachnvelintable[2]\t$eachnvelintable[3]\($sumclusterleftprimeronlycountspeak,$sumclusterrightprimeronlycountspeak,$clusterleftrightprimeridsintersectioncountpeak,$clusterleftrightprimeridsatleastonecountpeak\)\t$covnoveluniqe\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covclusterleftrightprimeridsatleastonecountpeak\)\n";
             }
-        }elsif ($options{'mode'} eq "illumina" && !exists $options{'bam'}) {
+        }elsif ($options{'mode'} eq "illumina" && !exists $options{'bam'} && $options{'fq'}!~/\:/) {
+            my $n=0;
+            foreach my $indexnovelcollection(@indexnovelcollections) {
+                $n++;
+                my @eachnvelintable=split(/\t/,"$hashtabnoncanonical{$indexnovelcollection}");
+                my $covnoveluniqe=sprintf("%.2f", $eachnvelintable[3]/$totalmappedread*1000000);
+
+                my @clusterleftprimeridspeak=();
+                my @clusterrightprimeridspeak=();
+                open(PRIMERBED, "$outputpath/alignment_output/selected_primer_pool.bed") or die "can't find primer bed file";
+                while (<PRIMERBED>) {
+                    chomp;
+                    my @eachprimerbed=split(/\t/);
+                    if ($eachprimerbed[1] < $eachnvelintable[1] && $eachprimerbed[3]=~/_LEFT/) {
+                        my @leftprimerids=grep(grep($_>=$eachprimerbed[1] && $_<=$eachprimerbed[2]-10, @$_[1]), @{$hashasspleftright{"$eachnvelintable[1]\t$eachnvelintable[2]"}});
+                        for (my $n=0; $n<$#leftprimerids+1; $n++) {
+                            push (@clusterleftprimeridspeak,"$leftprimerids[$n][0]");
+                        }
+                    }
+                                
+                    if ($eachprimerbed[2] > $eachnvelintable[2] && $eachprimerbed[3]=~/_RIGHT/) {     
+                        my @rightprimerids=grep(grep($_>=$eachprimerbed[1]+10 && $_<=$eachprimerbed[2], @$_[2]), @{$hashasspleftright{"$eachnvelintable[1]\t$eachnvelintable[2]"}});
+                        for (my $n=0; $n<$#rightprimerids+1; $n++) {
+                            push (@clusterrightprimeridspeak,"$rightprimerids[$n][0]");
+                        }
+                    }
+                }
+                close PRIMERBED;
+
+                my @sumclusterleftprimercountspeak=uniq(@clusterleftprimeridspeak);
+                my $sumclusterleftprimercountspeak=$#sumclusterleftprimercountspeak+1;
+                my @sumclusterrightprimercountspeak=uniq(@clusterrightprimeridspeak);
+                my $sumclusterrightprimercountspeak=$#sumclusterrightprimercountspeak+1;
+                
+                my $clusterleftrightprimeridspeak = List::Compare->new(\@clusterleftprimeridspeak, \@clusterrightprimeridspeak);
+                my @clusterleftrightprimeridsintersectionpeak = $clusterleftrightprimeridspeak->get_intersection;
+                my $clusterleftrightprimeridsintersectioncountpeak=$#clusterleftrightprimeridsintersectionpeak+1;
+            
+                my $sumclusterleftprimeronlycountspeak=$sumclusterleftprimercountspeak-$clusterleftrightprimeridsintersectioncountpeak;
+                my $sumclusterrightprimeronlycountspeak=$sumclusterrightprimercountspeak-$clusterleftrightprimeridsintersectioncountpeak;
+                my $clusterleftrightprimeridsatleastonecountpeak=$sumclusterleftprimercountspeak-$clusterleftrightprimeridsintersectioncountpeak+$sumclusterrightprimercountspeak;
+                
+                my $covsumclusterleftprimercountspeak=sprintf("%.2f", $sumclusterleftprimeronlycountspeak/$numleftprimersonly*1000000);
+                my $covsumclusterrightprimercountspeak=sprintf("%.2f", $sumclusterrightprimeronlycountspeak/$numrightprimersonly*1000000);
+                my $covclusterleftrightprimeridsintersectioncountpeak=sprintf("%.2f", $clusterleftrightprimeridsintersectioncountpeak/$numbothprimers*1000000);
+                my $covclusterleftrightprimeridsatleastonecountpeak=sprintf("%.2f", $clusterleftrightprimeridsatleastonecountpeak/$numatleastprimers*1000000);
+                
+                #&extractdetailsind($n,$eachnvelintable[1],$eachnvelintable[2]);
+                print NOVEL "$n\t$eachnvelintable[1]\t$eachnvelintable[2]\t$eachnvelintable[3]\($sumclusterleftprimeronlycountspeak,$sumclusterrightprimeronlycountspeak,$clusterleftrightprimeridsintersectioncountpeak,$clusterleftrightprimeridsatleastonecountpeak\)\t$covnoveluniqe\($covsumclusterleftprimercountspeak,$covsumclusterrightprimercountspeak,$covclusterleftrightprimeridsintersectioncountpeak,$covclusterleftrightprimeridsatleastonecountpeak\)\n";
+            }
+        }elsif ($options{'mode'} eq "illumina" && !exists $options{'bam'} && $options{'fq'}=~/\:/) {
             my $n=0;
             foreach my $indexnovelcollection(@indexnovelcollections) {
                 $n++;
