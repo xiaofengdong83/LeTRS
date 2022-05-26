@@ -120,7 +120,7 @@ Extracts the read-pairs containing the identified leader-TRS junctions in fasta 
 ```
 perl LeTRS.pl -t 16 -extractfasta -pool 0 -mode illumina -fq #1.fastq.gz:#2.fastq.gz -primer_bed path_to_primer_V3.bed -o LeTRS_output
 ```
-LeTRS also support single end Illumina sequencing data:
+LeTRS also support single-end Illumina sequencing data:
 
 ```
 perl LeTRS.pl -t 16 -extractfasta -pool 0 -mode illumina -fq fastq.gz -primer_bed path_to_primer_V3.bed -o LeTRS_output
