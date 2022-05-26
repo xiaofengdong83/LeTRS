@@ -175,6 +175,6 @@ There is also a perl script that can plot a diagram for the output of LeTRS.pl.
 Please the see the "readme.txt" file in the "making_reference_folder_example" folder.
 
 ## Citation 
-Xiaofeng Dong, Rebekah Penrice-Randal, Hannah Goldswain, Tessa Prince, Nadine Randle, Iah Donovan-Banfield, Francisco J. Salguero, Julia Tree, Ecaterina Vamos, Charlotte Nelson, Jordan Clark, Yan Ryan, James P. Stewart, Malcolm G. Semple J. Kenneth Baillie, Peter J. M. Openshaw, Lance Turtle, David A. Matthews, Miles W. Carroll, Alistair C. Darby and Julian A. Hiscox. GigaScience 2022 DOI: 10.1093/gigascience/giac045
+Xiaofeng Dong, Rebekah Penrice-Randal, Hannah Goldswain, Tessa Prince, Nadine Randle, I'ah Donovan-Banfield, Francisco J. Salguero, Julia Tree, Ecaterina Vamos, Charlotte Nelson, Jordan Clark, Yan Ryan, James P. Stewart, Malcolm G. Semple J. Kenneth Baillie, Peter J. M. Openshaw, Lance Turtle, David A. Matthews, Miles W. Carroll, Alistair C. Darby and Julian A. Hiscox. Analysis of SARS-CoV-2 known and novel subgenomic mRNAs in cell culture, animal model, and clinical samples using LeTRS, a bioinformatic tool to identify unique sequence identifiers. GigaScience 2022 DOI: 10.1093/gigascience/giac045
 
 
