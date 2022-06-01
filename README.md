@@ -8,7 +8,7 @@ It accepts fastq files derived from Illumina (single-end or paired-end) and Nano
 ## Installation:
 **1. Create an environment with one step**
 ```
-git clone https://github.com/Hiscox-lab/LeTRS.git
+git clone https://github.com/xiaofengdong83/LeTRS.git
 cd LeTRS
 conda env create -f my_environment.yml
 source activate LeTRS 
