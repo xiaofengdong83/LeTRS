@@ -3,7 +3,7 @@
 </p>
 LeTRS was implemented in Perl programming language, including a main script for identification of leader-TRS junctions and a script for plotting graphs of the results. 
 
-It accepts fastq files derived from Illumina (single-end or paired-end) and Nanopore amplicon/direct RNA sequencing, and bam files produced by a splicing alignment method with a SARS-CoV-2 genome. By default, LeTRS analyses SARS-CoV-2 by using 10 known leader-TRS junctions and an NCBI reference genome (NC_045512.2), but the user can also provide customized leader-TRS junctions and SARS-CoV-2 or other coronavirus genomes as a reference.
+It accepts bascalled fastq files derived from Nanopore amplicon/direct RNA sequencing, cleaned/trimmed Illumina fastq files (single-end or paired-end) or bam files produced by a splicing alignment method with a SARS-CoV-2 genome. By default, LeTRS analyses SARS-CoV-2 by using 10 known leader-TRS junctions and an NCBI reference genome (NC_045512.2), but the user can also provide customized leader-TRS junctions and SARS-CoV-2 or other coronavirus genomes as a reference.
 
 ## Installation:
 **1. Create an environment with one step**
@@ -151,9 +151,15 @@ The LeTRS output table for novel subgenomic mRNA in the sequencing data. "leader
 
 The LeTRS output table for details of novel subgenomic mRNA in the sequencing data. "peak_leader" and "peak_TRS_start" point to the leader-TRS junctions in novel_junction.tab, "ACGAAC" indicates if there is an ACGAAC sequence in the "TRS_seq" (TRS sequences), "20_leader_seq" refers to the 20 nucleotides before the end of the leader, "AUG_postion" and "first_orf_aa" refer to the first AUG position and translated orf of the sgmRNA, and "known_AUG" indicates if the first AUG position is the same as a known sgmRNA.
 
+
 ### **TRS_L_independent_junction.tab**
 
 If "-TRSLindependent" option is added, LeTRS will also identify the TRS Leader independent fusion sites in the reads.
+
+### **primer_usages.tab**
+
+If the sequencing data were derived from amplicon method, the primers in the reads used for amplification of subgenomic mRNAs will be stored in this file for the amplicon primer pool selected. e.g. nCoV-2019_9_RIGHT:8 means there are 8 reads/read pairs used the primer of "nCoV-2019_9_RIGHT" (a primer name in the ARTIC primer_bed that can be found in the "primer_bed" folder) to amplify the subgenomic mRNA.
+
 
 ## **Plotting**
 There is also a perl script that can plot a diagram for the output of LeTRS.pl.
